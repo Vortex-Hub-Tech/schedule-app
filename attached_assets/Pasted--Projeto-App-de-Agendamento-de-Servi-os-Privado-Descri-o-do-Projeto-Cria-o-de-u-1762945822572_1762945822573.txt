@@ -1,0 +1,71 @@
+## 📱 Projeto: App de Agendamento de Serviços (Privado)
+
+### 🌟 Descrição do Projeto
+Criação de um app mobile (iOS e Android) usando o framework **Expo (React Native)**. O app será utilizado por pequenas empresas para facilitar o agendamento de serviços entre clientes e prestadores. Cada empresa terá seu próprio build exclusivo, ou seja, haverá um app separado para **clientes** e outro para **prestadores**. O app **não será publicado nas lojas (Play Store/App Store)**, e funcionará de forma privada e offline-friendly.
+
+O diferencial: **sem sistema de login/registro**. O prestador consegue acessar o modo de edição de serviços diretamente pelo app buildado exclusivamente pra ele.
+
+### 🧠 Referência Visual e UX
+Inspirado em apps populares como **GetNinjas, Trinks, Schedulicity e Zenoti**, com uma interface minimalista e fluída, pensada para usuários com pouca familiaridade com tecnologia.
+
+### 📲 Plataforma-Alvo
+- Mobile (iOS + Android)
+- Framework: Expo + React Native
+
+### 🌐 Ambiente Operacional
+- App nativo offline-first, com sincronização futura possível via atualização
+
+### ☁️ Hospedagem
+- Backend com banco de dados **PostgreSQL** para armazenamento dos dados dos agendamentos
+- API com suporte a Z-API para envio de mensagens no WhatsApp
+- Backend hospedado em servidor privado ou cloud (Heroku, Railway, etc.)
+
+### 🎨 Estilo da Interface
+- Minimalista e intuitiva
+- Cores neutras com destaque em CTA (botões)
+- Tipografia legível
+- Ícones claros
+- UX fluída para toques rápidos
+
+### 🔄 Estrutura e Funcionalidades
+
+#### Para Clientes (App Público)
+- Visualização de serviços disponíveis
+- Seleção de data e hora com **datetime picker moderno e responsivo**
+- Formulário simples de agendamento com nome + telefone (sem login)
+- Ao enviar os dados, é enviado um **código de 6 dígitos via WhatsApp (Z-API)** para validação do número
+- Agendamento só é confirmado após a autenticação via código
+- Confirmação de agendamento com resumo
+- Tela "Meus Agendamentos" com botão de cancelar
+
+#### Para Prestador (App Privado)
+- Cadastro/Edição/Remoção de serviços
+- Definição de horários e dias disponíveis
+- Visualização dos agendamentos futuros
+- Exportação dos agendamentos (via e-mail ou CSV)
+- Gatilhos para envio automático de mensagens via WhatsApp
+- Opção para marcar agendamentos como "realizado", "cancelado" ou "pendente"
+
+### ✨ Funcionalidades Adicionais
+- Lembretes automáticos via WhatsApp no dia do agendamento
+- Opção de adicionar serviços favoritos
+- Feedback do cliente após o serviço (estrelas + comentário)
+
+### 🧹 Tecnologias Recomendadas
+- **React Native com Expo**
+- **React Navigation**
+- **PostgreSQL (via Supabase, Hasura ou backend custom)**
+- **Z-API** para integração com WhatsApp
+- **Date-fns** para manipulação de datas
+- **Expo Router** para navegação moderna
+- **Tailwind para React Native (Nativewind)** para estilização
+
+### 🚀 Saídas Esperadas
+- Dois builds por empresa: `app_cliente.apk` e `app_prestador.apk`
+- Interface limpa e responsiva
+- Fácil reusabilidade para clonar o projeto para outros negócios
+- Código bem documentado e modularizado
+
+### 🌍 Idiomas
+- Interação com Replit Agent: Português 🌟
+- Interface do App: Português 🌟

@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Agendamento de Serviços",
+    "slug": "agendamento-servicos",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agendamento.servicos"
+    },
+    "android": {
+      "package": "com.agendamento.servicos"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": false
+        }
+      ]
+    ],
+    "scheme": "agendamento",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
