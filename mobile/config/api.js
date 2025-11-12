@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { TenantStorage } from '../utils/storage';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://192.168.1.119:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,

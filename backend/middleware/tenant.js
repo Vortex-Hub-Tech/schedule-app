@@ -1,4 +1,4 @@
-const { pool } = require('../db');
+const { vortexPool } = require('../db');
 
 async function validateTenant(req, res, next) {
   try {
@@ -8,7 +8,7 @@ async function validateTenant(req, res, next) {
       return res.status(400).json({ error: 'Tenant ID é obrigatório' });
     }
 
-    const result = await pool.query(
+    const result = await vortexPool.query(
       `SELECT t.* FROM tenants t
        INNER JOIN integrations i ON t.id = i.tenant_id
        WHERE t.id = $1 

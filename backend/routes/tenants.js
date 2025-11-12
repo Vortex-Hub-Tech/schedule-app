@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../db');
+const { pool, vortexPool } = require('../db');
 
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await vortexPool.query(
       `SELECT DISTINCT 
         t.id, 
         t.name, 
@@ -31,7 +31,7 @@ router.get('/:id/bootstrap', async (req, res) => {
   try {
     const { id } = req.params;
     
-    const tenantResult = await pool.query(
+    const tenantResult = await vortexPool.query(
       `SELECT DISTINCT 
         t.id, 
         t.name, 

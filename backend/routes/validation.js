@@ -64,7 +64,7 @@ router.post('/verify-code', async (req, res) => {
     }
 
     const result = await pool.query(
-      'SELECT * FROM validations WHERE tenant_id = $1 AND phone = $2 AND code = $3 AND verified = FALSE AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+      `SELECT * FROM validations WHERE tenant_id = $1 AND phone = $2 AND code = $3 AND verified = FALSE AND expires_at::timestamp > (NOW() AT TIME ZONE 'America/Sao_Paulo') ORDER BY created_at DESC LIMIT 1`,
       [req.tenantId, phone, code]
     );
 
