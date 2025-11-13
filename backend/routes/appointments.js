@@ -83,14 +83,29 @@ router.patch('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'Status inválido' });
     }
 
-    const result = await pool.query(
-      `UPDATE appointments SET status = $1, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $2 AND tenant_id = $3 
-       RETURNING a.*, s.name as service_name, s.duration, s.price 
-       FROM appointments a
-       JOIN services s ON a.service_id = s.id AND a.tenant_id = s.tenant_id`,
-      [status, id, req.tenantId]
-    );
+    const queryText = `
+      UPDATE appointments AS a
+      SET status = $1, updated_at = CURRENT_TIMESTAMP
+      FROM services AS s
+      WHERE a.id = $2
+        AND a.tenant_id = $3
+        AND a.service_id = s.id
+        AND a.tenant_id = s.tenant_id
+      RETURNING a.*, s.name AS service_name, s.duration, s.price;
+    `;
+
+    const values = [status, id, req.tenantId];
+
+    // Monta a raw query para log (só debug)
+    const rawQuery = queryText.replace(/\$(\d+)/g, (_, i) => {
+      const val = values[i - 1];
+      if (val === null || val === undefined) return 'NULL';
+      return typeof val === 'string' ? `'${val}'` : val;
+    });
+
+    console.log('Raw Query:', rawQuery);
+
+    const result = await pool.query(queryText, values);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Agendamento não encontrado' });
