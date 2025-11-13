@@ -71,22 +71,21 @@ App mobile (React Native/Expo) para agendamento de serviços com dois modos:
 
 ## Configuração NitroSMS
 
-### Arquitetura: Uma Conta Global + Sender ID por Tenant
+### Arquitetura: Uma API Key Global + Device ID por Tenant
 
-O sistema usa **uma única conta NitroSMS compartilhada** configurada via secrets:
-- `NITRO_SUB_ACCOUNT`: Conta NitroSMS global
-- `NITRO_SUB_ACCOUNT_PASS`: Senha da conta global
+O sistema usa **uma única API Key NitroSMS compartilhada** configurada via secrets:
+- `NITRO_API_KEY`: Chave de API do NitroSMS (encontrada no painel)
 
-Cada tenant é identificado pelo seu **sender_id único** configurado na tabela integrations:
-- `nitro_sender_id`: Nome/ID que aparece no SMS (único por tenant)
+Cada tenant é identificado pelo seu **device_id único** configurado na tabela integrations:
+- `nitro_device_id`: ID do dispositivo Android no painel NitroSMS (único por tenant)
 
 ### Exemplo de Configuração SQL
 ```sql
--- Configurar sender_id para um tenant
+-- Configurar device_id para um tenant
 INSERT INTO integrations 
-  (id, tenant_id, name, type, nitro_sender_id, is_active) 
+  (id, tenant_id, name, type, nitro_device_id, is_active) 
 VALUES 
-  (gen_random_uuid(), 'tenant-demo-1', 'SMS', 'sms', 'BeautyShop', true);
+  (gen_random_uuid(), 'tenant-demo-1', 'SMS', 'sms', '12345', true);
 ```
 
 ### Endpoints SMS

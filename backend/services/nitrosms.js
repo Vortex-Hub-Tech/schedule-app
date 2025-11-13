@@ -1,27 +1,26 @@
+
 const axios = require('axios');
 const { pool, vortexPool } = require('../db');
 
-const NITROSMS_API_URL = 'http://nitrosms.cm/api_v1';
+const NITROSMS_API_URL = 'https://nitrosms.growsoft.io/services/send.php';
 
 class NitroSMSService {
   getGlobalCredentials() {
-    const subAccount = process.env.NITRO_SUB_ACCOUNT;
-    const subAccountPass = process.env.NITRO_SUB_ACCOUNT_PASS;
+    const apiKey = process.env.NITRO_API_KEY;
 
-    if (!subAccount || !subAccountPass) {
-      throw new Error('Credenciais globais NitroSMS não configuradas. Configure NITRO_SUB_ACCOUNT e NITRO_SUB_ACCOUNT_PASS');
+    if (!apiKey) {
+      throw new Error('Credenciais globais NitroSMS não configuradas. Configure NITRO_API_KEY');
     }
 
     return {
-      subAccount,
-      subAccountPass
+      apiKey
     };
   }
 
-  async getTenantSenderId(tenantId) {
+  async getTenantDeviceId(tenantId) {
     try {
       const result = await vortexPool.query(
-        `SELECT nitro_sender_id 
+        `SELECT nitro_device_id 
          FROM integrations 
          WHERE tenant_id = $1 
          AND type = 'sms' 
@@ -31,51 +30,52 @@ class NitroSMSService {
       );
 
       if (result.rows.length === 0) {
-        throw new Error('Configuração de sender_id não encontrada para este tenant');
+        throw new Error('Configuração de device_id não encontrada para este tenant');
       }
 
-      const senderId = result.rows[0].nitro_sender_id;
+      const deviceId = result.rows[0].nitro_device_id;
       
-      if (!senderId) {
-        throw new Error('Sender ID não configurado para este tenant');
+      if (!deviceId) {
+        throw new Error('Device ID não configurado para este tenant');
       }
 
-      return senderId;
+      return deviceId;
     } catch (error) {
-      console.error('❌ Erro ao buscar sender_id do tenant:', error.message);
+      console.error('❌ Erro ao buscar device_id do tenant:', error.message);
       throw error;
     }
   }
 
-  async sendSMS(tenantId, phone, message) {
+  async sendSMS(tenantId, phone, message, schedule = null, prioritize = false) {
     let logId = null;
     
     try {
       const credentials = this.getGlobalCredentials();
-      const senderId = await this.getTenantSenderId(tenantId);
+      const deviceId = await this.getTenantDeviceId(tenantId);
 
       const logResult = await pool.query(
         `INSERT INTO sms_logs (tenant_id, phone, message, sender_id, status)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id`,
-        [tenantId, phone, message, senderId, 'sending']
+        [tenantId, phone, message, deviceId, 'sending']
       );
       logId = logResult.rows[0].id;
 
       const cleanPhone = phone.replace(/\D/g, '');
 
-      const params = new URLSearchParams({
-        sub_account: credentials.subAccount,
-        sub_account_pass: credentials.subAccountPass,
-        action: 'send_sms',
-        sender_id: senderId,
+      const postData = {
+        key: credentials.apiKey,
+        number: cleanPhone,
         message: message,
-        recipients: cleanPhone
-      });
+        devices: deviceId,
+        type: 'sms',
+        schedule: schedule,
+        prioritize: prioritize ? 1 : 0
+      };
 
-      const response = await axios.post(NITROSMS_API_URL, params.toString(), {
+      const response = await axios.post(NITROSMS_API_URL, postData, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'
         },
         timeout: 15000
       });
@@ -87,7 +87,7 @@ class NitroSMSService {
         ['sent', JSON.stringify(response.data), logId]
       );
 
-      console.log(`✅ SMS enviado para ${phone} via NitroSMS (Sender: ${senderId}, Log ID: ${logId})`);
+      console.log(`✅ SMS enviado para ${phone} via NitroSMS (Device: ${deviceId}, Log ID: ${logId})`);
       
       return {
         success: true,
@@ -117,43 +117,62 @@ class NitroSMSService {
     }
   }
 
-  async sendBulkSMS(tenantId, phones, message) {
+  async sendBulkSMS(tenantId, phones, message, schedule = null, prioritize = false) {
     try {
       const credentials = this.getGlobalCredentials();
-      const senderId = await this.getTenantSenderId(tenantId);
+      const deviceId = await this.getTenantDeviceId(tenantId);
 
-      const cleanPhones = phones.map(p => p.replace(/\D/g, '')).join(',');
-
-      const params = new URLSearchParams({
-        sub_account: credentials.subAccount,
-        sub_account_pass: credentials.subAccountPass,
-        action: 'send_sms',
-        sender_id: senderId,
-        message: message,
-        recipients: cleanPhones
-      });
-
-      const response = await axios.post(NITROSMS_API_URL, params.toString(), {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        timeout: 30000
-      });
-
+      const results = [];
+      
       for (const phone of phones) {
-        await pool.query(
-          `INSERT INTO sms_logs (tenant_id, phone, message, sender_id, status, nitro_response, sent_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-          [tenantId, phone, message, senderId, 'sent', JSON.stringify(response.data)]
-        );
+        const cleanPhone = phone.replace(/\D/g, '');
+
+        const postData = {
+          key: credentials.apiKey,
+          number: cleanPhone,
+          message: message,
+          devices: deviceId,
+          type: 'sms',
+          schedule: schedule,
+          prioritize: prioritize ? 1 : 0
+        };
+
+        try {
+          const response = await axios.post(NITROSMS_API_URL, postData, {
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            timeout: 15000
+          });
+
+          await pool.query(
+            `INSERT INTO sms_logs (tenant_id, phone, message, sender_id, status, nitro_response, sent_at)
+             VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+            [tenantId, phone, message, deviceId, 'sent', JSON.stringify(response.data)]
+          );
+
+          results.push({ phone, success: true, response: response.data });
+        } catch (error) {
+          const errorMessage = error.response?.data || error.message;
+          
+          await pool.query(
+            `INSERT INTO sms_logs (tenant_id, phone, message, sender_id, status, error_message)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [tenantId, phone, message, deviceId, 'failed', errorMessage]
+          );
+
+          results.push({ phone, success: false, error: errorMessage });
+        }
       }
 
-      console.log(`✅ SMS em lote enviado para ${phones.length} destinatários via NitroSMS`);
+      const successCount = results.filter(r => r.success).length;
+      console.log(`✅ SMS em lote: ${successCount}/${phones.length} enviados com sucesso`);
       
       return {
         success: true,
         count: phones.length,
-        response: response.data
+        successCount: successCount,
+        results: results
       };
 
     } catch (error) {

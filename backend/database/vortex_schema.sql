@@ -1,4 +1,3 @@
-
 -- Tabela de tenants (empresas)
 CREATE TABLE IF NOT EXISTS tenants (
   id VARCHAR(255) PRIMARY KEY,
@@ -7,12 +6,12 @@ CREATE TABLE IF NOT EXISTS tenants (
   status VARCHAR(50) DEFAULT 'active',
   plan VARCHAR(50),
   settings JSONB DEFAULT '{}',
-  device_id VARCHAR(255),
+  nitro_device_id VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_tenants_device_id ON tenants(device_id);
+CREATE INDEX IF NOT EXISTS idx_tenants_nitro_device_id ON tenants(nitro_device_id);
 
 -- Tabela de integrações
 CREATE TABLE IF NOT EXISTS integrations (

@@ -222,42 +222,42 @@ npx expo start
 
 ## 📱 Configuração NitroSMS
 
-### Arquitetura: Uma Conta Global + Sender ID por Tenant
+### Arquitetura: Uma API Key Global + Device ID por Tenant
 
-O sistema usa **uma única conta NitroSMS compartilhada** para todos os tenants. Cada tenant é identificado pelo seu **sender_id único**.
+O sistema usa **uma única API Key NitroSMS compartilhada** para todos os tenants. Cada tenant é identificado pelo seu **device_id único** (dispositivo Android configurado no NitroSMS).
 
 #### 1. Configurar Credenciais Globais (Uma vez)
 
-Configure as credenciais da conta NitroSMS como secrets do Replit:
+Configure a API Key do NitroSMS como secret do Replit:
 
 ```bash
-NITRO_SUB_ACCOUNT=001_sua_conta
-NITRO_SUB_ACCOUNT_PASS=sua_senha_secreta
+NITRO_API_KEY=sua_api_key_aqui
 ```
 
-#### 2. Configurar Sender ID por Tenant
+#### 2. Configurar Device ID por Tenant
 
-Cada tenant precisa ter seu sender_id configurado na tabela integrations:
+Cada tenant precisa ter seu device_id configurado na tabela integrations (ID do dispositivo Android no painel NitroSMS):
 
 ```sql
 -- Criar integração SMS para um tenant
 INSERT INTO integrations 
-  (id, tenant_id, name, type, nitro_sender_id, is_active)
+  (id, tenant_id, name, type, nitro_device_id, is_active)
 VALUES 
-  (gen_random_uuid(), 'tenant-demo-1', 'SMS', 'sms', 'BeautyShop', true);
+  (gen_random_uuid(), 'tenant-demo-1', 'SMS', 'sms', '12345', true);
 ```
 
 ```sql
--- Atualizar sender_id de um tenant existente
+-- Atualizar device_id de um tenant existente
 UPDATE integrations 
-SET nitro_sender_id = 'MeuNegocio'
+SET nitro_device_id = '67890'
 WHERE tenant_id = 'seu-tenant-id' AND type = 'sms';
 ```
 
 **Como funciona:**
-- Todos os SMS usam as mesmas credenciais globais (sub_account + senha)
-- O `sender_id` identifica qual empresa está enviando a mensagem
-- Cada tenant tem seu próprio sender_id único e reconhecível
+- Todos os SMS usam a mesma API Key global
+- O `nitro_device_id` identifica qual dispositivo Android enviará a mensagem
+- Cada tenant tem seu próprio device_id (permite diferentes chips/números)
+- Os dispositivos devem estar configurados no painel NitroSMS
 
 **Modo Desenvolvimento:**
 - Sem credenciais configuradas, o código aparece nos logs do servidor
