@@ -1,9 +1,11 @@
-import { View, Text, TouchableOpacity, ActivityIndicator, ImageBackground } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { TenantStorage, DeviceStorage } from '../utils/storage';
 import apiClient from '../config/api';
 import { TENANT_CONFIG } from '../config/tenant';
+import { getThemeColors } from '../utils/theme';
 
 export default function Home() {
   const router = useRouter();
@@ -75,35 +77,6 @@ export default function Home() {
     }
   };
 
-  const getThemeColor = (theme) => {
-    switch (theme) {
-      case 'pink':
-        return { 
-          primary: '#ec4899', 
-          light: '#fce7f3',
-          gradient: ['#ec4899', '#f472b6']
-        };
-      case 'blue':
-        return { 
-          primary: '#3b82f6', 
-          light: '#dbeafe',
-          gradient: ['#3b82f6', '#60a5fa']
-        };
-      case 'orange':
-        return { 
-          primary: '#f97316', 
-          light: '#ffedd5',
-          gradient: ['#f97316', '#fb923c']
-        };
-      default:
-        return { 
-          primary: '#0ea5e9', 
-          light: '#e0f2fe',
-          gradient: ['#0ea5e9', '#38bdf8']
-        };
-    }
-  };
-
   if (loading) {
     return (
       <View className="flex-1 bg-white justify-center items-center">
@@ -113,12 +86,12 @@ export default function Home() {
     );
   }
 
-  const colors = getThemeColor(tenant?.settings?.theme);
+  const colors = getThemeColors(tenant?.settings?.theme);
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header com gradiente */}
-      <View style={{ backgroundColor: colors.primary }} className="pt-16 pb-12 px-6 rounded-b-3xl shadow-lg">
+      <LinearGradient colors={colors.gradient} className="pt-16 pb-12 px-6 rounded-b-3xl shadow-lg">
         <View className="items-center mb-6">
           <View className="bg-white/20 w-20 h-20 rounded-full items-center justify-center mb-4">
             <Text className="text-white text-4xl">📅</Text>
@@ -130,7 +103,7 @@ export default function Home() {
             Sistema de Agendamento Online
           </Text>
         </View>
-      </View>
+      </LinearGradient>
 
       {/* Escolha de perfil */}
       <View className="flex-1 px-6 -mt-8">
