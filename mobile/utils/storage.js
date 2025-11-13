@@ -5,7 +5,14 @@ const KEYS = {
   TENANT_DATA: '@agendamento:tenant_data',
   SERVICES_CACHE: '@agendamento:services_cache',
   APPOINTMENTS_CACHE: '@agendamento:appointments_cache',
+  DEVICE_ID: '@agendamento:device_id',
+  USER_SESSION: '@agendamento:user_session',
+  USER_TYPE: '@agendamento:user_type',
 };
+
+function generateDeviceId() {
+  return `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+}
 
 export const TenantStorage = {
   async setTenant(tenant) {
@@ -144,6 +151,72 @@ export const TenantStorage = {
       return true;
     } catch (error) {
       console.error('Erro ao limpar cache:', error);
+      return false;
+    }
+  },
+};
+
+export const DeviceStorage = {
+  async getDeviceId() {
+    try {
+      let deviceId = await AsyncStorage.getItem(KEYS.DEVICE_ID);
+      if (!deviceId) {
+        deviceId = generateDeviceId();
+        await AsyncStorage.setItem(KEYS.DEVICE_ID, deviceId);
+      }
+      return deviceId;
+    } catch (error) {
+      console.error('Erro ao obter deviceId:', error);
+      return null;
+    }
+  },
+
+  async setUserSession(sessionData) {
+    try {
+      await AsyncStorage.setItem(KEYS.USER_SESSION, JSON.stringify(sessionData));
+      return true;
+    } catch (error) {
+      console.error('Erro ao salvar sessão:', error);
+      return false;
+    }
+  },
+
+  async getUserSession() {
+    try {
+      const session = await AsyncStorage.getItem(KEYS.USER_SESSION);
+      return session ? JSON.parse(session) : null;
+    } catch (error) {
+      console.error('Erro ao carregar sessão:', error);
+      return null;
+    }
+  },
+
+  async setUserType(userType) {
+    try {
+      await AsyncStorage.setItem(KEYS.USER_TYPE, userType);
+      return true;
+    } catch (error) {
+      console.error('Erro ao salvar tipo de usuário:', error);
+      return false;
+    }
+  },
+
+  async getUserType() {
+    try {
+      return await AsyncStorage.getItem(KEYS.USER_TYPE);
+    } catch (error) {
+      console.error('Erro ao carregar tipo de usuário:', error);
+      return null;
+    }
+  },
+
+  async clearUserSession() {
+    try {
+      await AsyncStorage.removeItem(KEYS.USER_SESSION);
+      await AsyncStorage.removeItem(KEYS.USER_TYPE);
+      return true;
+    } catch (error) {
+      console.error('Erro ao limpar sessão:', error);
       return false;
     }
   },
