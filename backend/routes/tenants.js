@@ -31,20 +31,33 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await vortexPool.query(
-      `SELECT 
+    // 1️⃣ Defina a query como string
+    const queryText = `
+      SELECT 
         t.id, 
         t.name, 
         t.slug, 
         t.plan,
         t.settings,
         t.status
-       FROM tenants t
-       WHERE t.id = $1
-       AND t.status = 'active'
-       LIMIT 1`,
-      [id]
-    );
+      FROM tenants t
+      WHERE t.id = $1
+      AND t.status = 'active'
+      LIMIT 1
+    `;
+
+    const values = [id];
+
+    // 2️⃣ Monte a "raw query" para log
+    const rawQuery = queryText.replace(/\$(\d+)/g, (_, i) => {
+      const val = values[i - 1];
+      return typeof val === 'string' ? `'${val}'` : val;
+    });
+
+    console.log('Raw Query:', rawQuery);
+
+    // 3️⃣ Execute a query de verdade
+    const result = await vortexPool.query(queryText, values);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Empresa não encontrada' });
