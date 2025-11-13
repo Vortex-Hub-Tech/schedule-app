@@ -48,14 +48,6 @@ router.get('/:id', async (req, res) => {
 
     const values = [id];
 
-    // 2️⃣ Monte a "raw query" para log
-    const rawQuery = queryText.replace(/\$(\d+)/g, (_, i) => {
-      const val = values[i - 1];
-      return typeof val === 'string' ? `'${val}'` : val;
-    });
-
-    console.log('Raw Query:', rawQuery);
-
     // 3️⃣ Execute a query de verdade
     const result = await vortexPool.query(queryText, values);
 
