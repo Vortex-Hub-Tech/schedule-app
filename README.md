@@ -35,7 +35,7 @@ Sistema completo de agendamento de serviços **multi-tenant** com React Native/E
 ### Backend
 - **Node.js** + **Express.js** - API REST
 - **PostgreSQL** - Banco multi-tenant
-- **Axios** - Integração Z-API (WhatsApp)
+- **NitroSMS** - Envio de SMS por tenant (cada tenant = sender individual)
 - **Middleware customizado** para validação de tenant
 
 ### Mobile  
@@ -66,8 +66,12 @@ Agendamentos com isolamento por tenant:
 - `tenant_id`, `service_id`, `client_name`, `client_phone`, `appointment_date`, `status`
 
 #### `validations` (tenant-aware)
-Códigos de validação via WhatsApp:
+Códigos de validação via SMS:
 - `tenant_id`, `phone`, `code`, `verified`, `expires_at`
+
+#### `sms_logs` (tenant-aware)
+Registro completo de todos os SMS enviados:
+- `tenant_id`, `phone`, `message`, `sender_id`, `status`, `nitro_response`, `sent_at`
 
 ### Isolamento de Dados
 - **Foreign keys compostas**: `(id, tenant_id)` impedem referências cruzadas
@@ -103,10 +107,16 @@ PATCH  /api/appointments/:id/status      - Atualizar status
 DELETE /api/appointments/:id             - Remover agendamento
 ```
 
-**Validação WhatsApp**
+**Validação SMS**
 ```
-POST /api/validation/send-code     - Enviar código de 6 dígitos
+POST /api/validation/send-code     - Enviar código de 6 dígitos via SMS
 POST /api/validation/verify-code   - Validar código
+```
+
+**Logs de SMS**
+```
+GET  /api/sms-logs                 - Listar logs de SMS do tenant
+GET  /api/sms-logs/stats           - Estatísticas de envio de SMS
 ```
 
 ## 📱 Fluxo do App Mobile
@@ -210,17 +220,53 @@ npx expo start
 - **Serviços:** Troca de Óleo, Alinhamento
 - **ID:** `tenant-demo-3`
 
-## 🔐 Configuração Z-API (WhatsApp)
+## 📱 Configuração NitroSMS
 
-Configure em `backend/.env`:
-```bash
-Z_API_URL=https://api.z-api.io/instances/SEU_ID
-Z_API_TOKEN=seu_token_aqui
+### Sistema Multi-Tenant com Sender Individual
+
+Cada tenant tem sua própria configuração de SMS com sender_id único. Configure via SQL:
+
+```sql
+-- Atualizar integração do tenant com credenciais NitroSMS
+UPDATE integrations 
+SET 
+  type = 'sms',
+  nitro_sub_account = '001_mysub1',
+  nitro_sub_account_pass = 'sua_senha',
+  nitro_sender_id = 'MinhaEmpresa'
+WHERE tenant_id = 'seu-tenant-id';
+```
+
+### Criar Nova Integração SMS para Tenant
+
+```sql
+INSERT INTO integrations 
+  (id, tenant_id, name, type, nitro_sub_account, nitro_sub_account_pass, nitro_sender_id, is_active)
+VALUES 
+  (gen_random_uuid(), 'seu-tenant-id', 'SMS', 'sms', '001_mysub1', 'senha', 'SenderName', true);
 ```
 
 **Modo Desenvolvimento:**
-- Sem Z-API configurada, o código aparece nos logs do servidor
-- Útil para testes sem depender do WhatsApp
+- Sem NitroSMS configurado, o código aparece nos logs do servidor
+- SMS é registrado na tabela `sms_logs` mesmo em caso de erro
+- Útil para testes sem depender do serviço de SMS
+
+### Consultar Logs de SMS
+
+Use a API para verificar histórico de envios:
+```bash
+# Todos os logs do tenant
+GET /api/sms-logs
+
+# Filtrar por telefone
+GET /api/sms-logs?phone=679999999
+
+# Filtrar por status
+GET /api/sms-logs?status=sent
+
+# Estatísticas
+GET /api/sms-logs/stats
+```
 
 ## 🎯 Adicionar Nova Empresa
 
@@ -231,9 +277,15 @@ INSERT INTO tenants (id, name, slug, status, plan, settings) VALUES
 ('minha-empresa', 'Minha Empresa', 'minha-empresa', 'active', 'premium',
  '{"theme": "blue", "timezone": "America/Sao_Paulo"}');
 
--- Adicionar integração
-INSERT INTO integrations (tenant_id, name, type, is_active) VALUES
-('minha-empresa', 'Agendamento', 'app', true);
+-- Adicionar integração do app
+INSERT INTO integrations (id, tenant_id, name, type, is_active) VALUES
+(gen_random_uuid(), 'minha-empresa', 'Agendamento', 'app', true);
+
+-- Adicionar integração SMS (NitroSMS)
+INSERT INTO integrations 
+  (id, tenant_id, name, type, nitro_sub_account, nitro_sub_account_pass, nitro_sender_id, is_active) 
+VALUES 
+  (gen_random_uuid(), 'minha-empresa', 'SMS', 'sms', '001_mysub', 'senha', 'MinhaEmp', true);
 
 -- Adicionar serviços
 INSERT INTO services (tenant_id, name, description, duration, price) VALUES

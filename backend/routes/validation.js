@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
-const axios = require('axios');
+const nitroSMS = require('../services/nitrosms');
 const { validateTenant } = require('../middleware/tenant');
 
 router.use(validateTenant);
@@ -26,36 +26,27 @@ router.post('/send-code', async (req, res) => {
       [req.tenantId, phone, code, expiresAt]
     );
 
-    if (process.env.Z_API_URL && process.env.Z_API_TOKEN) {
-      try {
-        await axios.post(
-          `${process.env.Z_API_URL}/send-text`,
-          {
-            phone: phone,
-            message: `🔐 *Código de Verificação - ${req.tenant.name}*\n\n` +
-                     `Olá! 👋\n\n` +
-                     `Seu código de verificação é:\n\n` +
-                     `*${code}*\n\n` +
-                     `⏱️ Este código expira em *10 minutos*.\n\n` +
-                     `Não compartilhe este código com ninguém! 🔒`
-          },
-          {
-            headers: {
-              'Client-Token': process.env.Z_API_TOKEN
-            }
-          }
-        );
-        console.log(`✅ Código ${code} enviado para ${phone} via WhatsApp (Tenant: ${req.tenant.name})`);
-      } catch (error) {
-        console.error('❌ Erro ao enviar via Z-API:', error.message);
-        console.log(`🔐 DEBUG: Código gerado (não enviado): ${code} para ${phone} (Tenant: ${req.tenant.name})`);
-      }
-    } else {
-      console.log(`⚠️ Z-API não configurada. Código gerado: ${code} para ${phone} (Tenant: ${req.tenant.name})`);
+    const message = `Código de Verificação - ${req.tenant.name}\n\n` +
+                    `Olá!\n\n` +
+                    `Seu código de verificação é:\n\n` +
+                    `${code}\n\n` +
+                    `Este código expira em 10 minutos.\n\n` +
+                    `Não compartilhe este código com ninguém!`;
+
+    const smsResult = await nitroSMS.sendSMS(req.tenantId, phone, message);
+    
+    if (!smsResult.success) {
+      console.log(`⚠️ SMS não enviado, mas código foi gerado: ${code} para ${phone} (Tenant: ${req.tenant.name})`);
+      console.log(`Erro: ${smsResult.error}`);
     }
 
-    res.status(200).json({ message: 'Código enviado com sucesso!' });
+    res.status(200).json({ 
+      message: 'Código enviado com sucesso!',
+      smsSent: smsResult.success,
+      logId: smsResult.logId
+    });
   } catch (error) {
+    console.error('❌ Erro ao processar envio de código:', error.message);
     res.status(500).json({ error: 'Erro ao enviar código' });
   }
 });

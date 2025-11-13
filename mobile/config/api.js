@@ -1,7 +1,20 @@
 import axios from 'axios';
 import { TenantStorage } from '../utils/storage';
+import Constants from 'expo-constants';
 
-const API_URL = 'http://192.168.1.119:5000/api';
+const getApiUrl = () => {
+  if (Constants.expoConfig?.extra?.API_URL) {
+    return Constants.expoConfig.extra.API_URL;
+  }
+  
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,

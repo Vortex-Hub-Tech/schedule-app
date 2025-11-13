@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
 const { validateTenant } = require('../middleware/tenant');
-const axios = require('axios');
+const nitroSMS = require('../services/nitrosms');
 
 router.use(validateTenant);
 
@@ -113,37 +113,30 @@ router.patch('/:id/status', async (req, res) => {
 
     const appointment = result.rows[0];
     
-    // Enviar notificação via WhatsApp quando marcar como realizado
-    if (status === 'realizado' && process.env.Z_API_URL && process.env.Z_API_TOKEN) {
+    if (status === 'realizado') {
       try {
         const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('pt-BR');
         const appointmentTime = appointment.appointment_time.substring(0, 5);
         
-        await axios.post(
-          `${process.env.Z_API_URL}/send-text`,
-          {
-            phone: appointment.client_phone,
-            message: `✅ *Agendamento Confirmado - ${req.tenant.name}*\n\n` +
-                     `Olá, *${appointment.client_name}*! 👋\n\n` +
-                     `Seu agendamento foi *confirmado* com sucesso! 🎉\n\n` +
-                     `📋 *Detalhes do Agendamento:*\n` +
-                     `━━━━━━━━━━━━━━━━━━━━\n` +
-                     `🔹 *Serviço:* ${appointment.service_name}\n` +
-                     `🔹 *Data:* ${appointmentDate}\n` +
-                     `🔹 *Horário:* ${appointmentTime}\n` +
-                     `━━━━━━━━━━━━━━━━━━━━\n\n` +
-                     `Aguardamos você! 😊\n\n` +
-                     `_Mensagem automática - ${req.tenant.name}_`
-          },
-          {
-            headers: {
-              'Client-Token': process.env.Z_API_TOKEN
-            }
-          }
-        );
-        console.log(`✅ Notificação de confirmação enviada para ${appointment.client_phone}`);
+        const message = `Agendamento Confirmado - ${req.tenant.name}\n\n` +
+                       `Olá, ${appointment.client_name}!\n\n` +
+                       `Seu agendamento foi confirmado com sucesso!\n\n` +
+                       `Detalhes do Agendamento:\n` +
+                       `Serviço: ${appointment.service_name}\n` +
+                       `Data: ${appointmentDate}\n` +
+                       `Horário: ${appointmentTime}\n\n` +
+                       `Aguardamos você!\n\n` +
+                       `Mensagem automática - ${req.tenant.name}`;
+
+        const smsResult = await nitroSMS.sendSMS(req.tenantId, appointment.client_phone, message);
+        
+        if (smsResult.success) {
+          console.log(`✅ Notificação de confirmação enviada para ${appointment.client_phone} (Log ID: ${smsResult.logId})`);
+        } else {
+          console.log(`⚠️ Não foi possível enviar notificação SMS: ${smsResult.error}`);
+        }
       } catch (error) {
-        console.error('❌ Erro ao enviar notificação via Z-API:', error.message);
+        console.error('❌ Erro ao enviar notificação via NitroSMS:', error.message);
       }
     }
     
