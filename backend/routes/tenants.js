@@ -27,6 +27,36 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await vortexPool.query(
+      `SELECT 
+        t.id, 
+        t.name, 
+        t.slug, 
+        t.plan,
+        t.settings,
+        t.status
+       FROM tenants t
+       WHERE t.id = $1
+       AND t.status = 'active'
+       LIMIT 1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Empresa não encontrada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Erro ao buscar tenant:', error);
+    res.status(500).json({ error: 'Erro ao carregar empresa' });
+  }
+});
+
 router.get('/:id/bootstrap', async (req, res) => {
   try {
     const { id } = req.params;
