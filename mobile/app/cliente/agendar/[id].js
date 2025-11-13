@@ -1,3 +1,4 @@
+
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -9,7 +10,6 @@ import { TenantStorage, DeviceStorage } from '../../../utils/storage';
 
 export default function AgendarServico() {
   const router = useRouter();
-  const params = useLocalSearchParams(); // Use useLocalSearchParams to access parameters
   const { id } = useLocalSearchParams();
   const [service, setService] = useState(null);
   const [tenant, setTenant] = useState(null);
@@ -21,6 +21,13 @@ export default function AgendarServico() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
+  
+  // Estados para validação
+  const [verificationCode, setVerificationCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -46,7 +53,33 @@ export default function AgendarServico() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSendCode = async () => {
+    if (!clientPhone.trim() || clientPhone.length < 10) {
+      Alert.alert('Erro', 'Por favor, preencha um telefone válido');
+      return;
+    }
+
+    setSendingCode(true);
+    try {
+      await apiClient.validation.sendCode(clientPhone);
+      setCodeSent(true);
+      Alert.alert(
+        'Código Enviado! ✅',
+        'Verifique seu WhatsApp e digite o código de 6 dígitos que você recebeu.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Erro ao enviar código:', error);
+      Alert.alert(
+        'Erro',
+        error.response?.data?.error || 'Não foi possível enviar o código. Tente novamente.'
+      );
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleVerifyAndSubmit = async () => {
     if (!clientName.trim()) {
       Alert.alert('Erro', 'Por favor, preencha seu nome');
       return;
@@ -54,20 +87,6 @@ export default function AgendarServico() {
 
     if (!clientPhone.trim()) {
       Alert.alert('Erro', 'Por favor, preencha seu telefone');
-      return;
-    }
-
-    // Verificar se o telefone já foi validado
-    const phoneVerified = params.verified === 'true';
-    if (!phoneVerified) {
-      // Redirecionar para validação
-      router.push({
-        pathname: '/cliente/validar-telefone',
-        params: {
-          phone: clientPhone,
-          serviceId: id
-        }
-      });
       return;
     }
 
@@ -81,14 +100,30 @@ export default function AgendarServico() {
       return;
     }
 
+    if (!codeSent) {
+      Alert.alert('Erro', 'Por favor, envie o código de verificação primeiro');
+      return;
+    }
+
+    if (verificationCode.length !== 6) {
+      Alert.alert('Erro', 'Digite o código de 6 dígitos');
+      return;
+    }
 
     if (!deviceId) {
       Alert.alert('Erro', 'Erro de autenticação. Tente reiniciar o aplicativo.');
       return;
     }
 
+    setVerifyingCode(true);
     setLoading(true);
+    
     try {
+      // Primeiro verifica o código
+      await apiClient.validation.verifyCode(clientPhone, verificationCode);
+      setPhoneVerified(true);
+
+      // Se o código estiver correto, cria o agendamento
       await apiClient.appointments.create({
         service_id: id,
         client_name: clientName,
@@ -104,17 +139,22 @@ export default function AgendarServico() {
         [
           {
             text: 'Ver meus agendamentos',
-            onPress: () => router.push('/cliente/meus-agendamentos'),
-          },
-          {
-            text: 'Voltar ao início',
-            onPress: () => router.push('/cliente'),
+            onPress: () => router.replace('/cliente/meus-agendamentos'),
           },
         ]
       );
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível criar o agendamento. Tente novamente.');
+      console.error('Erro:', error);
+      if (error.response?.status === 400) {
+        Alert.alert(
+          'Código Inválido',
+          'Código incorreto ou expirado. Tente novamente.'
+        );
+      } else {
+        Alert.alert('Erro', 'Não foi possível criar o agendamento. Tente novamente.');
+      }
     } finally {
+      setVerifyingCode(false);
       setLoading(false);
     }
   };
@@ -169,22 +209,6 @@ export default function AgendarServico() {
       </View>
 
       <View className="px-6 -mt-4 pb-6">
-        {params.verified !== 'true' && (
-          <View className="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-200">
-            <View className="flex-row items-start">
-              <Text className="text-2xl mr-2">🔐</Text>
-              <View className="flex-1">
-                <Text className="text-blue-800 font-semibold mb-1">
-                  Verificação de Telefone
-                </Text>
-                <Text className="text-blue-700 text-sm">
-                  Para sua segurança, você receberá um código de verificação via WhatsApp antes de confirmar o agendamento.
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
         {/* Seus Dados */}
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
           <View className="flex-row items-center mb-4">
@@ -206,7 +230,7 @@ export default function AgendarServico() {
           <View className="mb-4">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-gray-700 font-semibold">Telefone *</Text>
-              {params.verified === 'true' && (
+              {phoneVerified && (
                 <View className="flex-row items-center bg-green-100 px-3 py-1 rounded-full">
                   <Text className="text-green-700 font-semibold text-xs mr-1">✓</Text>
                   <Text className="text-green-700 font-semibold text-xs">Verificado</Text>
@@ -218,21 +242,59 @@ export default function AgendarServico() {
               value={clientPhone}
               onChangeText={(text) => {
                 setClientPhone(text);
-                // Se mudar o telefone, remove a verificação
-                if (params.verified === 'true') {
-                  router.setParams({ verified: 'false' });
-                }
+                setCodeSent(false);
+                setPhoneVerified(false);
+                setVerificationCode('');
               }}
               placeholder="(00) 00000-0000"
               keyboardType="phone-pad"
-              editable={params.verified !== 'true'}
+              editable={!phoneVerified}
             />
-            {params.verified !== 'true' && (
-              <Text className="text-gray-500 text-xs mt-1">
-                Você precisará verificar este número via WhatsApp
-              </Text>
-            )}
           </View>
+
+          {!codeSent && !phoneVerified && (
+            <TouchableOpacity
+              onPress={handleSendCode}
+              disabled={sendingCode || !clientPhone.trim()}
+              className="rounded-xl p-4 items-center mb-2"
+              style={{ backgroundColor: clientPhone.trim() ? colors.primary : '#ccc' }}
+            >
+              {sendingCode ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white font-bold text-base">
+                  📱 Enviar Código via WhatsApp
+                </Text>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {codeSent && !phoneVerified && (
+            <View className="mt-2">
+              <Text className="text-gray-700 font-semibold mb-2">
+                Código de verificação (6 dígitos):
+              </Text>
+              <TextInput
+                className="bg-white border-2 rounded-xl p-4 mb-3 text-center text-2xl font-bold tracking-widest"
+                style={{ borderColor: colors.primary }}
+                value={verificationCode}
+                onChangeText={(text) => setVerificationCode(text.replace(/[^0-9]/g, ''))}
+                keyboardType="number-pad"
+                maxLength={6}
+                placeholder="000000"
+                placeholderTextColor="#ccc"
+              />
+              <TouchableOpacity
+                onPress={handleSendCode}
+                disabled={sendingCode}
+                className="p-2 items-center"
+              >
+                <Text style={{ color: colors.primary }} className="font-semibold text-sm">
+                  {sendingCode ? 'Enviando...' : 'Reenviar Código'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Data e Hora */}
@@ -315,16 +377,18 @@ export default function AgendarServico() {
 
         {/* Botão Confirmar */}
         <TouchableOpacity
-          onPress={handleSubmit}
-          disabled={loading}
+          onPress={handleVerifyAndSubmit}
+          disabled={loading || !codeSent || verificationCode.length !== 6}
           className="rounded-xl p-4 items-center"
-          style={{ backgroundColor: loading ? '#9ca3af' : colors.primary }}
+          style={{ 
+            backgroundColor: (!loading && codeSent && verificationCode.length === 6) ? colors.primary : '#9ca3af'
+          }}
         >
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white font-bold text-lg">
-              {params.verified === 'true' ? 'Confirmar Agendamento' : 'Continuar'}
+              ✅ Confirmar Agendamento
             </Text>
           )}
         </TouchableOpacity>
