@@ -1,39 +1,79 @@
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { TenantStorage } from '../utils/storage';
+import { TenantStorage, DeviceStorage } from '../utils/storage';
+import apiClient from '../config/api';
+import { TENANT_CONFIG } from '../config/tenant';
 
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [tenant, setTenant] = useState(null);
+  const [userType, setUserType] = useState(null);
 
   useEffect(() => {
-    checkTenant();
+    initializeApp();
   }, []);
 
-  const checkTenant = async () => {
-    const savedTenant = await TenantStorage.getTenant();
-    if (!savedTenant) {
-      router.replace('/select-tenant');
-    } else {
-      setTenant(savedTenant);
+  const initializeApp = async () => {
+    try {
+      const savedUserType = await DeviceStorage.getUserType();
+      
+      if (savedUserType) {
+        setUserType(savedUserType);
+        await loadTenantData();
+        setLoading(false);
+        router.replace(savedUserType === 'cliente' ? '/cliente' : '/prestador');
+      } else {
+        await loadTenantData();
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar app:', error);
       setLoading(false);
     }
   };
 
-  const changeTenant = async () => {
-    await TenantStorage.clearTenant();
-    router.replace('/select-tenant');
+  const loadTenantData = async () => {
+    try {
+      const savedTenant = await TenantStorage.getTenant();
+      
+      if (!savedTenant || savedTenant.id !== TENANT_CONFIG.TENANT_ID) {
+        const response = await apiClient.tenants.getById(TENANT_CONFIG.TENANT_ID);
+        const tenantData = response.data;
+        await TenantStorage.setTenant(tenantData);
+        setTenant(tenantData);
+        
+        const bootstrap = await apiClient.tenants.getBootstrap(TENANT_CONFIG.TENANT_ID);
+        await TenantStorage.setTenantData(bootstrap.data);
+      } else {
+        setTenant(savedTenant);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do tenant:', error);
+    }
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#0ea5e9" />
-      </View>
-    );
-  }
+  const selectUserType = async (type) => {
+    try {
+      setLoading(true);
+      const deviceId = await DeviceStorage.getDeviceId();
+      
+      await DeviceStorage.setUserType(type);
+      await DeviceStorage.setUserSession({
+        deviceId,
+        userType: type,
+        tenantId: TENANT_CONFIG.TENANT_ID,
+        createdAt: new Date().toISOString(),
+      });
+      
+      setUserType(type);
+      router.replace(type === 'cliente' ? '/cliente' : '/prestador');
+    } catch (error) {
+      console.error('Erro ao selecionar tipo de usuário:', error);
+      setLoading(false);
+    }
+  };
 
   const getThemeColor = (theme) => {
     switch (theme) {
@@ -48,23 +88,22 @@ export default function Home() {
     }
   };
 
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#0ea5e9" />
+      </View>
+    );
+  }
+
   const colors = getThemeColor(tenant?.settings?.theme);
 
   return (
     <View className="flex-1 bg-gray-50">
       <View className={`${colors.bg} pt-12 pb-8 px-6`}>
-        <View className="flex-row justify-between items-center mb-4">
-          <View className="flex-1">
-            <Text className="text-white/80 text-sm">Você está em:</Text>
-            <Text className="text-white text-2xl font-bold mt-1">{tenant?.name}</Text>
-          </View>
-          <TouchableOpacity
-            className="bg-white/20 px-4 py-2 rounded-lg"
-            onPress={changeTenant}
-          >
-            <Text className="text-white text-sm font-semibold">Trocar</Text>
-          </TouchableOpacity>
-        </View>
+        <Text className="text-white text-3xl font-bold mb-2">
+          {tenant?.name || 'Bem-vindo!'}
+        </Text>
         <Text className="text-white/90 text-base">
           Escolha o modo de acesso:
         </Text>
@@ -73,7 +112,7 @@ export default function Home() {
       <View className="flex-1 px-6 -mt-4">
         <TouchableOpacity 
           className="bg-white rounded-xl p-6 mb-4 shadow-sm border border-gray-100"
-          onPress={() => router.push('/cliente')}
+          onPress={() => selectUserType('cliente')}
         >
           <View className={`w-14 h-14 rounded-full ${colors.bg} justify-center items-center mb-3`}>
             <Text className="text-white text-2xl">👤</Text>
@@ -88,7 +127,7 @@ export default function Home() {
 
         <TouchableOpacity 
           className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-          onPress={() => router.push('/prestador')}
+          onPress={() => selectUserType('prestador')}
         >
           <View className="w-14 h-14 rounded-full bg-gray-700 justify-center items-center mb-3">
             <Text className="text-white text-2xl">💼</Text>
