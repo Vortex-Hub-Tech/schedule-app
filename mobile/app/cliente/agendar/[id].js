@@ -51,6 +51,11 @@ export default function AgendarServico() {
       return;
     }
 
+    if (!deviceId) {
+      Alert.alert('Erro', 'Erro de autenticação. Tente reiniciar o aplicativo.');
+      return;
+    }
+
     setLoading(true);
     try {
       await apiClient.appointments.create({

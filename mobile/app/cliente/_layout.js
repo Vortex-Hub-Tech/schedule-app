@@ -28,13 +28,6 @@ export default function ClienteLayout() {
         }} 
       />
       <Stack.Screen 
-        name="validar" 
-        options={{ 
-          title: 'Validar Código',
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
         name="agendar/[id]" 
         options={{ 
           title: 'Agendar Serviço',
