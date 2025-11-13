@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import apiClient from '../../config/api';
@@ -8,6 +8,7 @@ export default function ClienteHome() {
   const router = useRouter();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [tenant, setTenant] = useState(null);
 
   useEffect(() => {
@@ -36,82 +37,132 @@ export default function ClienteHome() {
       console.error('Erro ao carregar serviços:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadServices();
   };
 
   const getThemeColor = (theme) => {
     switch (theme) {
       case 'pink':
-        return 'bg-pink-500';
+        return { primary: '#ec4899', light: '#fce7f3', text: 'text-pink-600' };
       case 'blue':
-        return 'bg-blue-500';
+        return { primary: '#3b82f6', light: '#dbeafe', text: 'text-blue-600' };
       case 'orange':
-        return 'bg-orange-500';
+        return { primary: '#f97316', light: '#ffedd5', text: 'text-orange-600' };
       default:
-        return 'bg-primary-600';
+        return { primary: '#0ea5e9', light: '#e0f2fe', text: 'text-sky-600' };
     }
   };
 
-  const themeBg = getThemeColor(tenant?.settings?.theme);
+  const colors = getThemeColor(tenant?.settings?.theme);
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#0ea5e9" />
+      <View className="flex-1 bg-gray-50 justify-center items-center">
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="text-gray-600 mt-4">Carregando serviços...</Text>
       </View>
     );
   }
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View className={`${themeBg} pt-12 pb-8 px-6`}>
-        <TouchableOpacity onPress={() => router.back()} className="mb-4">
-          <Text className="text-white text-base">← Voltar</Text>
-        </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold mb-1">Serviços Disponíveis</Text>
-        <Text className="text-white/90">Escolha um serviço para agendar</Text>
+      {/* Header */}
+      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-8 px-6 rounded-b-3xl shadow-lg">
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-1">
+            <Text className="text-white/80 text-sm font-medium">Olá! 👋</Text>
+            <Text className="text-white text-2xl font-bold mt-1">
+              Serviços Disponíveis
+            </Text>
+          </View>
+        </View>
+        <Text className="text-white/90 text-base">
+          Escolha um serviço e faça seu agendamento
+        </Text>
       </View>
 
-      <ScrollView className="flex-1 px-6 -mt-4">
+      <ScrollView 
+        className="flex-1 px-6 -mt-4"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
+      >
         {services.length === 0 ? (
-          <View className="bg-white rounded-xl p-8 shadow-sm">
-            <Text className="text-gray-500 text-center text-base">
-              Nenhum serviço disponível no momento
+          <View className="bg-white rounded-2xl p-8 mt-4 items-center shadow-sm">
+            <Text className="text-6xl mb-4">😔</Text>
+            <Text className="text-gray-800 text-lg font-bold mb-2 text-center">
+              Nenhum serviço disponível
+            </Text>
+            <Text className="text-gray-500 text-center">
+              Volte mais tarde para conferir novos serviços
             </Text>
           </View>
         ) : (
-          services.map((service) => (
-            <TouchableOpacity
-              key={service.id}
-              className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100"
-              onPress={() => router.push(`/cliente/agendar/${service.id}`)}
-            >
-              <Text className="text-xl font-bold text-gray-800 mb-2">{service.name}</Text>
-              {service.description && (
-                <Text className="text-gray-600 mb-3 text-base leading-5">{service.description}</Text>
-              )}
-              <View className="flex-row justify-between items-center pt-3 border-t border-gray-100">
-                <View className="flex-row items-center">
-                  <Text className="text-gray-500 text-sm">⏱️ {service.duration} min</Text>
+          <View className="mt-4">
+            {services.map((service, index) => (
+              <TouchableOpacity
+                key={service.id}
+                className="bg-white rounded-2xl p-5 mb-4 shadow-sm active:opacity-70"
+                activeOpacity={0.8}
+                onPress={() => router.push(`/cliente/agendar/${service.id}`)}
+              >
+                <View className="flex-row items-start justify-between mb-3">
+                  <View className="flex-1">
+                    <Text className="text-xl font-bold text-gray-800 mb-1">
+                      {service.name}
+                    </Text>
+                    {service.description && (
+                      <Text className="text-gray-600 text-sm leading-5">
+                        {service.description}
+                      </Text>
+                    )}
+                  </View>
                 </View>
-                {service.price && (
-                  <Text className={`text-lg font-bold ${themeBg.replace('bg-', 'text-')}`}>
-                    R$ {parseFloat(service.price).toFixed(2)}
+
+                <View className="flex-row items-center justify-between pt-4 border-t border-gray-100">
+                  <View className="flex-row items-center space-x-4">
+                    <View className="flex-row items-center bg-gray-50 px-3 py-2 rounded-full">
+                      <Text className="text-gray-600 text-sm font-medium">⏱️ {service.duration} min</Text>
+                    </View>
+                  </View>
+                  {service.price && (
+                    <View style={{ backgroundColor: colors.light }} className="px-4 py-2 rounded-full">
+                      <Text style={{ color: colors.primary }} className="text-lg font-bold">
+                        R$ {parseFloat(service.price).toFixed(2)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={{ backgroundColor: colors.light }} className="mt-4 px-4 py-3 rounded-xl items-center">
+                  <Text style={{ color: colors.primary }} className="font-bold text-base">
+                    Agendar Agora →
                   </Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
+
+        <View className="h-6" />
       </ScrollView>
 
-      <View className="p-4 bg-white border-t border-gray-200">
+      {/* Botão Flutuante Meus Agendamentos */}
+      <View className="px-6 pb-6 bg-white border-t border-gray-100">
         <TouchableOpacity 
-          className="bg-gray-700 py-4 rounded-xl"
+          className="bg-gray-800 py-4 rounded-2xl flex-row items-center justify-center shadow-lg active:opacity-80"
+          activeOpacity={0.8}
           onPress={() => router.push('/cliente/meus-agendamentos')}
         >
-          <Text className="text-white text-center font-semibold text-base">
-            📅 Meus Agendamentos
+          <Text className="text-white text-lg font-bold mr-2">📅</Text>
+          <Text className="text-white text-base font-bold">
+            Meus Agendamentos
           </Text>
         </TouchableOpacity>
       </View>

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { TenantStorage, DeviceStorage } from '../utils/storage';
@@ -78,20 +78,37 @@ export default function Home() {
   const getThemeColor = (theme) => {
     switch (theme) {
       case 'pink':
-        return { bg: 'bg-pink-500', text: 'text-pink-600' };
+        return { 
+          primary: '#ec4899', 
+          light: '#fce7f3',
+          gradient: ['#ec4899', '#f472b6']
+        };
       case 'blue':
-        return { bg: 'bg-blue-500', text: 'text-blue-600' };
+        return { 
+          primary: '#3b82f6', 
+          light: '#dbeafe',
+          gradient: ['#3b82f6', '#60a5fa']
+        };
       case 'orange':
-        return { bg: 'bg-orange-500', text: 'text-orange-600' };
+        return { 
+          primary: '#f97316', 
+          light: '#ffedd5',
+          gradient: ['#f97316', '#fb923c']
+        };
       default:
-        return { bg: 'bg-primary-600', text: 'text-primary-600' };
+        return { 
+          primary: '#0ea5e9', 
+          light: '#e0f2fe',
+          gradient: ['#0ea5e9', '#38bdf8']
+        };
     }
   };
 
   if (loading) {
     return (
       <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#0ea5e9" />
+        <ActivityIndicator size="large" color="#ec4899" />
+        <Text className="text-gray-600 mt-4 text-base">Carregando...</Text>
       </View>
     );
   }
@@ -100,45 +117,85 @@ export default function Home() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View className={`${colors.bg} pt-12 pb-8 px-6`}>
-        <Text className="text-white text-3xl font-bold mb-2">
-          {tenant?.name || 'Bem-vindo!'}
-        </Text>
-        <Text className="text-white/90 text-base">
-          Escolha o modo de acesso:
-        </Text>
+      {/* Header com gradiente */}
+      <View style={{ backgroundColor: colors.primary }} className="pt-16 pb-12 px-6 rounded-b-3xl shadow-lg">
+        <View className="items-center mb-6">
+          <View className="bg-white/20 w-20 h-20 rounded-full items-center justify-center mb-4">
+            <Text className="text-white text-4xl">📅</Text>
+          </View>
+          <Text className="text-white text-3xl font-bold text-center">
+            {tenant?.name || 'Bem-vindo!'}
+          </Text>
+          <Text className="text-white/90 text-base mt-2 text-center">
+            Sistema de Agendamento Online
+          </Text>
+        </View>
       </View>
 
-      <View className="flex-1 px-6 -mt-4">
-        <TouchableOpacity 
-          className="bg-white rounded-xl p-6 mb-4 shadow-sm border border-gray-100"
-          onPress={() => selectUserType('cliente')}
-        >
-          <View className={`w-14 h-14 rounded-full ${colors.bg} justify-center items-center mb-3`}>
-            <Text className="text-white text-2xl">👤</Text>
-          </View>
-          <Text className="text-xl font-bold text-gray-800 mb-2">
-            Acessar como Cliente
+      {/* Escolha de perfil */}
+      <View className="flex-1 px-6 -mt-8">
+        <View className="bg-white rounded-2xl p-6 mb-6 shadow-md">
+          <Text className="text-gray-800 text-xl font-bold mb-2 text-center">
+            Como você deseja acessar?
           </Text>
-          <Text className="text-gray-600 text-base">
-            Visualize serviços e faça seus agendamentos
+          <Text className="text-gray-500 text-center mb-6">
+            Escolha o perfil adequado para continuar
           </Text>
-        </TouchableOpacity>
+          
+          <View className="space-y-4">
+            {/* Card Cliente */}
+            <TouchableOpacity 
+              style={{ backgroundColor: colors.light }}
+              className="rounded-2xl p-6 border-2 active:opacity-70"
+              activeOpacity={0.8}
+              onPress={() => selectUserType('cliente')}
+            >
+              <View className="flex-row items-center">
+                <View style={{ backgroundColor: colors.primary }} className="w-16 h-16 rounded-full items-center justify-center">
+                  <Text className="text-white text-3xl">👤</Text>
+                </View>
+                <View className="flex-1 ml-4">
+                  <Text className="text-gray-800 text-xl font-bold mb-1">
+                    Sou Cliente
+                  </Text>
+                  <Text className="text-gray-600 text-sm">
+                    Agendar serviços e consultar horários
+                  </Text>
+                </View>
+                <Text className="text-gray-400 text-2xl">›</Text>
+              </View>
+            </TouchableOpacity>
 
-        <TouchableOpacity 
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-          onPress={() => selectUserType('prestador')}
-        >
-          <View className="w-14 h-14 rounded-full bg-gray-700 justify-center items-center mb-3">
-            <Text className="text-white text-2xl">💼</Text>
+            {/* Card Prestador */}
+            <TouchableOpacity 
+              className="bg-gray-100 rounded-2xl p-6 border-2 border-gray-200 active:opacity-70"
+              activeOpacity={0.8}
+              onPress={() => selectUserType('prestador')}
+            >
+              <View className="flex-row items-center">
+                <View className="bg-gray-700 w-16 h-16 rounded-full items-center justify-center">
+                  <Text className="text-white text-3xl">💼</Text>
+                </View>
+                <View className="flex-1 ml-4">
+                  <Text className="text-gray-800 text-xl font-bold mb-1">
+                    Sou Prestador
+                  </Text>
+                  <Text className="text-gray-600 text-sm">
+                    Gerenciar serviços e agendamentos
+                  </Text>
+                </View>
+                <Text className="text-gray-400 text-2xl">›</Text>
+              </View>
+            </TouchableOpacity>
           </View>
-          <Text className="text-xl font-bold text-gray-800 mb-2">
-            Acessar como Prestador
+        </View>
+
+        {/* Footer informativo */}
+        <View className="items-center px-4 py-6">
+          <Text className="text-gray-400 text-xs text-center">
+            Sua escolha será lembrada neste dispositivo
           </Text>
-          <Text className="text-gray-600 text-base">
-            Gerencie seus serviços e agendamentos
-          </Text>
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

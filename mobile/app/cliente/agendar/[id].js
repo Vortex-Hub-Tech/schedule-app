@@ -47,7 +47,7 @@ export default function AgendarServico() {
 
   const handleSubmit = async () => {
     if (!clientName.trim() || !clientPhone.trim()) {
-      Alert.alert('Atenção', 'Preencha todos os campos');
+      Alert.alert('Atenção', 'Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -68,21 +68,21 @@ export default function AgendarServico() {
       });
       
       Alert.alert(
-        'Sucesso!',
-        'Agendamento realizado com sucesso',
+        '✅ Agendamento Confirmado!',
+        'Seu horário foi reservado com sucesso.',
         [
           {
             text: 'Ver meus agendamentos',
             onPress: () => router.push('/cliente/meus-agendamentos'),
           },
           {
-            text: 'Voltar',
-            onPress: () => router.back(),
+            text: 'Voltar ao início',
+            onPress: () => router.push('/cliente'),
           },
         ]
       );
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível criar o agendamento');
+      Alert.alert('Erro', 'Não foi possível criar o agendamento. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -91,82 +91,116 @@ export default function AgendarServico() {
   const getThemeColor = (theme) => {
     switch (theme) {
       case 'pink':
-        return 'bg-pink-500';
+        return { primary: '#ec4899', light: '#fce7f3' };
       case 'blue':
-        return 'bg-blue-500';
+        return { primary: '#3b82f6', light: '#dbeafe' };
       case 'orange':
-        return 'bg-orange-500';
+        return { primary: '#f97316', light: '#ffedd5' };
       default:
-        return 'bg-primary-600';
+        return { primary: '#0ea5e9', light: '#e0f2fe' };
     }
   };
 
-  const themeBg = getThemeColor(tenant?.settings?.theme);
+  const colors = getThemeColor(tenant?.settings?.theme);
 
   if (!service) {
     return (
-      <View className="flex-1 bg-white justify-center items-center">
-        <Text className="text-gray-500">Carregando...</Text>
+      <View className="flex-1 bg-gray-50 justify-center items-center">
+        <Text className="text-gray-500">Carregando serviço...</Text>
       </View>
     );
   }
 
   return (
     <ScrollView className="flex-1 bg-gray-50">
-      <View className={`${themeBg} pt-12 pb-8 px-6`}>
+      {/* Header */}
+      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-8 px-6 rounded-b-3xl shadow-lg">
         <TouchableOpacity onPress={() => router.back()} className="mb-4">
-          <Text className="text-white text-base">← Voltar</Text>
+          <View className="flex-row items-center">
+            <Text className="text-white text-2xl mr-2">←</Text>
+            <Text className="text-white text-base font-medium">Voltar</Text>
+          </View>
         </TouchableOpacity>
         <Text className="text-white text-2xl font-bold mb-1">{service.name}</Text>
-        <Text className="text-white/90">{service.description}</Text>
+        <Text className="text-white/90 text-base">{service.description}</Text>
+        
+        {/* Info do Serviço */}
+        <View className="flex-row items-center mt-4 space-x-4">
+          <View className="bg-white/20 px-4 py-2 rounded-full">
+            <Text className="text-white font-medium">⏱️ {service.duration} min</Text>
+          </View>
+          {service.price && (
+            <View className="bg-white/20 px-4 py-2 rounded-full">
+              <Text className="text-white font-bold">R$ {parseFloat(service.price).toFixed(2)}</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       <View className="px-6 -mt-4 pb-6">
-        <View className="bg-white rounded-xl p-5 mb-4 shadow-sm">
-          <Text className="text-gray-800 font-bold text-lg mb-4">📝 Seus Dados</Text>
+        {/* Seus Dados */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <View className="flex-row items-center mb-4">
+            <Text className="text-2xl mr-2">📝</Text>
+            <Text className="text-gray-800 font-bold text-lg">Seus Dados</Text>
+          </View>
           
-          <Text className="text-gray-700 font-semibold mb-2">Nome completo</Text>
-          <TextInput
-            className="bg-gray-50 border border-gray-300 rounded-lg p-4 mb-4 text-base"
-            placeholder="Digite seu nome"
-            value={clientName}
-            onChangeText={setClientName}
-            placeholderTextColor="#9ca3af"
-          />
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-2">Nome completo *</Text>
+            <TextInput
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-base text-gray-800"
+              placeholder="Digite seu nome completo"
+              value={clientName}
+              onChangeText={setClientName}
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
 
-          <Text className="text-gray-700 font-semibold mb-2">Telefone (com DDD)</Text>
-          <TextInput
-            className="bg-gray-50 border border-gray-300 rounded-lg p-4 text-base"
-            placeholder="(00) 00000-0000"
-            value={clientPhone}
-            onChangeText={setClientPhone}
-            keyboardType="phone-pad"
-            placeholderTextColor="#9ca3af"
-          />
+          <View>
+            <Text className="text-gray-700 font-semibold mb-2">Telefone (com DDD) *</Text>
+            <TextInput
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-base text-gray-800"
+              placeholder="(00) 00000-0000"
+              value={clientPhone}
+              onChangeText={setClientPhone}
+              keyboardType="phone-pad"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
         </View>
 
-        <View className="bg-white rounded-xl p-5 mb-4 shadow-sm">
-          <Text className="text-gray-800 font-bold text-lg mb-4">📅 Data e Hora</Text>
+        {/* Data e Hora */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <View className="flex-row items-center mb-4">
+            <Text className="text-2xl mr-2">📅</Text>
+            <Text className="text-gray-800 font-bold text-lg">Data e Hora</Text>
+          </View>
           
-          <Text className="text-gray-700 font-semibold mb-2">Data do agendamento</Text>
-          <TouchableOpacity
-            className="bg-gray-50 border border-gray-300 rounded-lg p-4 mb-4"
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text className="text-gray-800 text-base">
-              {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-            </Text>
-          </TouchableOpacity>
+          <View className="mb-4">
+            <Text className="text-gray-700 font-semibold mb-2">Data do agendamento</Text>
+            <TouchableOpacity
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex-row items-center justify-between"
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text className="text-gray-800 text-base font-medium">
+                {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </Text>
+              <Text className="text-gray-400 text-xl">📅</Text>
+            </TouchableOpacity>
+          </View>
 
-          <Text className="text-gray-700 font-semibold mb-2">Horário</Text>
-          <TouchableOpacity
-            className="bg-gray-50 border border-gray-300 rounded-lg p-4"
-            onPress={() => setShowTimePicker(true)}
-          >
-            <Text className="text-gray-800 text-base">
-              {format(selectedTime, 'HH:mm')}
-            </Text>
-          </TouchableOpacity>
+          <View>
+            <Text className="text-gray-700 font-semibold mb-2">Horário</Text>
+            <TouchableOpacity
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex-row items-center justify-between"
+              onPress={() => setShowTimePicker(true)}
+            >
+              <Text className="text-gray-800 text-base font-medium">
+                {format(selectedTime, 'HH:mm')}
+              </Text>
+              <Text className="text-gray-400 text-xl">🕐</Text>
+            </TouchableOpacity>
+          </View>
 
           {showDatePicker && (
             <DateTimePicker
@@ -194,15 +228,41 @@ export default function AgendarServico() {
           )}
         </View>
 
+        {/* Resumo */}
+        <View style={{ backgroundColor: colors.light }} className="rounded-2xl p-5 mb-4">
+          <Text className="text-gray-800 font-bold text-base mb-3">📋 Resumo do Agendamento</Text>
+          <View className="space-y-2">
+            <Text className="text-gray-700">
+              <Text className="font-semibold">Serviço:</Text> {service.name}
+            </Text>
+            <Text className="text-gray-700">
+              <Text className="font-semibold">Data:</Text> {format(selectedDate, "dd/MM/yyyy")}
+            </Text>
+            <Text className="text-gray-700">
+              <Text className="font-semibold">Horário:</Text> {format(selectedTime, 'HH:mm')}
+            </Text>
+            <Text className="text-gray-700">
+              <Text className="font-semibold">Duração:</Text> {service.duration} minutos
+            </Text>
+          </View>
+        </View>
+
+        {/* Botão Confirmar */}
         <TouchableOpacity
-          className={`${themeBg} py-4 rounded-xl shadow-sm`}
+          style={{ backgroundColor: loading ? '#9ca3af' : colors.primary }}
+          className="py-4 rounded-2xl shadow-lg active:opacity-80"
+          activeOpacity={0.8}
           onPress={handleSubmit}
           disabled={loading}
         >
           <Text className="text-white text-center font-bold text-base">
-            {loading ? 'Agendando...' : 'Confirmar Agendamento'}
+            {loading ? 'Agendando...' : '✓ Confirmar Agendamento'}
           </Text>
         </TouchableOpacity>
+
+        <Text className="text-gray-400 text-xs text-center mt-4">
+          * Campos obrigatórios
+        </Text>
       </View>
     </ScrollView>
   );
