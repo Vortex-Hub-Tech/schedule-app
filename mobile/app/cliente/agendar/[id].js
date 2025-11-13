@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -9,6 +9,7 @@ import { TenantStorage, DeviceStorage } from '../../../utils/storage';
 
 export default function AgendarServico() {
   const router = useRouter();
+  const params = useLocalSearchParams(); // Use useLocalSearchParams to access parameters
   const { id } = useLocalSearchParams();
   const [service, setService] = useState(null);
   const [tenant, setTenant] = useState(null);
@@ -28,10 +29,10 @@ export default function AgendarServico() {
   const loadData = async () => {
     const savedTenant = await TenantStorage.getTenant();
     setTenant(savedTenant);
-    
+
     const id = await DeviceStorage.getDeviceId();
     setDeviceId(id);
-    
+
     loadService();
   };
 
@@ -46,10 +47,40 @@ export default function AgendarServico() {
   };
 
   const handleSubmit = async () => {
-    if (!clientName.trim() || !clientPhone.trim()) {
-      Alert.alert('Atenção', 'Por favor, preencha todos os campos obrigatórios');
+    if (!clientName.trim()) {
+      Alert.alert('Erro', 'Por favor, preencha seu nome');
       return;
     }
+
+    if (!clientPhone.trim()) {
+      Alert.alert('Erro', 'Por favor, preencha seu telefone');
+      return;
+    }
+
+    // Verificar se o telefone já foi validado
+    const phoneVerified = params.verified === 'true';
+    if (!phoneVerified) {
+      // Redirecionar para validação
+      router.push({
+        pathname: '/cliente/validar-telefone',
+        params: {
+          phone: clientPhone,
+          serviceId: id
+        }
+      });
+      return;
+    }
+
+    if (!selectedDate) {
+      Alert.alert('Erro', 'Por favor, selecione uma data');
+      return;
+    }
+
+    if (!selectedTime) {
+      Alert.alert('Erro', 'Por favor, selecione um horário');
+      return;
+    }
+
 
     if (!deviceId) {
       Alert.alert('Erro', 'Erro de autenticação. Tente reiniciar o aplicativo.');
@@ -66,7 +97,7 @@ export default function AgendarServico() {
         appointment_time: format(selectedTime, 'HH:mm'),
         device_id: deviceId,
       });
-      
+
       Alert.alert(
         '✅ Agendamento Confirmado!',
         'Seu horário foi reservado com sucesso.',
@@ -123,7 +154,7 @@ export default function AgendarServico() {
         </TouchableOpacity>
         <Text className="text-white text-2xl font-bold mb-1">{service.name}</Text>
         <Text className="text-white/90 text-base">{service.description}</Text>
-        
+
         {/* Info do Serviço */}
         <View className="flex-row items-center mt-4 space-x-4">
           <View className="bg-white/20 px-4 py-2 rounded-full">
@@ -138,13 +169,29 @@ export default function AgendarServico() {
       </View>
 
       <View className="px-6 -mt-4 pb-6">
+        {params.verified !== 'true' && (
+          <View className="bg-blue-50 p-4 rounded-xl mb-4 border border-blue-200">
+            <View className="flex-row items-start">
+              <Text className="text-2xl mr-2">🔐</Text>
+              <View className="flex-1">
+                <Text className="text-blue-800 font-semibold mb-1">
+                  Verificação de Telefone
+                </Text>
+                <Text className="text-blue-700 text-sm">
+                  Para sua segurança, você receberá um código de verificação via WhatsApp antes de confirmar o agendamento.
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Seus Dados */}
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
           <View className="flex-row items-center mb-4">
             <Text className="text-2xl mr-2">📝</Text>
             <Text className="text-gray-800 font-bold text-lg">Seus Dados</Text>
           </View>
-          
+
           <View className="mb-4">
             <Text className="text-gray-700 font-semibold mb-2">Nome completo *</Text>
             <TextInput
@@ -156,16 +203,35 @@ export default function AgendarServico() {
             />
           </View>
 
-          <View>
-            <Text className="text-gray-700 font-semibold mb-2">Telefone (com DDD) *</Text>
+          <View className="mb-4">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-gray-700 font-semibold">Telefone *</Text>
+              {params.verified === 'true' && (
+                <View className="flex-row items-center bg-green-100 px-3 py-1 rounded-full">
+                  <Text className="text-green-700 font-semibold text-xs mr-1">✓</Text>
+                  <Text className="text-green-700 font-semibold text-xs">Verificado</Text>
+                </View>
+              )}
+            </View>
             <TextInput
               className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-base text-gray-800"
-              placeholder="(00) 00000-0000"
               value={clientPhone}
-              onChangeText={setClientPhone}
+              onChangeText={(text) => {
+                setClientPhone(text);
+                // Se mudar o telefone, remove a verificação
+                if (params.verified === 'true') {
+                  router.setParams({ verified: 'false' });
+                }
+              }}
+              placeholder="(00) 00000-0000"
               keyboardType="phone-pad"
-              placeholderTextColor="#9ca3af"
+              editable={params.verified !== 'true'}
             />
+            {params.verified !== 'true' && (
+              <Text className="text-gray-500 text-xs mt-1">
+                Você precisará verificar este número via WhatsApp
+              </Text>
+            )}
           </View>
         </View>
 
@@ -175,7 +241,7 @@ export default function AgendarServico() {
             <Text className="text-2xl mr-2">📅</Text>
             <Text className="text-gray-800 font-bold text-lg">Data e Hora</Text>
           </View>
-          
+
           <View className="mb-4">
             <Text className="text-gray-700 font-semibold mb-2">Data do agendamento</Text>
             <TouchableOpacity
@@ -249,15 +315,18 @@ export default function AgendarServico() {
 
         {/* Botão Confirmar */}
         <TouchableOpacity
-          style={{ backgroundColor: loading ? '#9ca3af' : colors.primary }}
-          className="py-4 rounded-2xl shadow-lg active:opacity-80"
-          activeOpacity={0.8}
           onPress={handleSubmit}
           disabled={loading}
+          className="rounded-xl p-4 items-center"
+          style={{ backgroundColor: loading ? '#9ca3af' : colors.primary }}
         >
-          <Text className="text-white text-center font-bold text-base">
-            {loading ? 'Agendando...' : '✓ Confirmar Agendamento'}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white font-bold text-lg">
+              {params.verified === 'true' ? 'Confirmar Agendamento' : 'Continuar'}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <Text className="text-gray-400 text-xs text-center mt-4">

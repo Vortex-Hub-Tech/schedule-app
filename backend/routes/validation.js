@@ -32,7 +32,12 @@ router.post('/send-code', async (req, res) => {
           `${process.env.Z_API_URL}/send-text`,
           {
             phone: phone,
-            message: `Seu código de verificação é: ${code}\n\nO código expira em 10 minutos.`
+            message: `🔐 *Código de Verificação - ${req.tenant.name}*\n\n` +
+                     `Olá! 👋\n\n` +
+                     `Seu código de verificação é:\n\n` +
+                     `*${code}*\n\n` +
+                     `⏱️ Este código expira em *10 minutos*.\n\n` +
+                     `Não compartilhe este código com ninguém! 🔒`
           },
           {
             headers: {
