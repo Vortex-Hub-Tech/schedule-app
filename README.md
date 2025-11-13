@@ -222,32 +222,45 @@ npx expo start
 
 ## 📱 Configuração NitroSMS
 
-### Sistema Multi-Tenant com Sender Individual
+### Arquitetura: Uma Conta Global + Sender ID por Tenant
 
-Cada tenant tem sua própria configuração de SMS com sender_id único. Configure via SQL:
+O sistema usa **uma única conta NitroSMS compartilhada** para todos os tenants. Cada tenant é identificado pelo seu **sender_id único**.
 
-```sql
--- Atualizar integração do tenant com credenciais NitroSMS
-UPDATE integrations 
-SET 
-  type = 'sms',
-  nitro_sub_account = '001_mysub1',
-  nitro_sub_account_pass = 'sua_senha',
-  nitro_sender_id = 'MinhaEmpresa'
-WHERE tenant_id = 'seu-tenant-id';
+#### 1. Configurar Credenciais Globais (Uma vez)
+
+Configure as credenciais da conta NitroSMS como secrets do Replit:
+
+```bash
+NITRO_SUB_ACCOUNT=001_sua_conta
+NITRO_SUB_ACCOUNT_PASS=sua_senha_secreta
 ```
 
-### Criar Nova Integração SMS para Tenant
+#### 2. Configurar Sender ID por Tenant
+
+Cada tenant precisa ter seu sender_id configurado na tabela integrations:
 
 ```sql
+-- Criar integração SMS para um tenant
 INSERT INTO integrations 
-  (id, tenant_id, name, type, nitro_sub_account, nitro_sub_account_pass, nitro_sender_id, is_active)
+  (id, tenant_id, name, type, nitro_sender_id, is_active)
 VALUES 
-  (gen_random_uuid(), 'seu-tenant-id', 'SMS', 'sms', '001_mysub1', 'senha', 'SenderName', true);
+  (gen_random_uuid(), 'tenant-demo-1', 'SMS', 'sms', 'BeautyShop', true);
 ```
+
+```sql
+-- Atualizar sender_id de um tenant existente
+UPDATE integrations 
+SET nitro_sender_id = 'MeuNegocio'
+WHERE tenant_id = 'seu-tenant-id' AND type = 'sms';
+```
+
+**Como funciona:**
+- Todos os SMS usam as mesmas credenciais globais (sub_account + senha)
+- O `sender_id` identifica qual empresa está enviando a mensagem
+- Cada tenant tem seu próprio sender_id único e reconhecível
 
 **Modo Desenvolvimento:**
-- Sem NitroSMS configurado, o código aparece nos logs do servidor
+- Sem credenciais configuradas, o código aparece nos logs do servidor
 - SMS é registrado na tabela `sms_logs` mesmo em caso de erro
 - Útil para testes sem depender do serviço de SMS
 
@@ -281,11 +294,11 @@ INSERT INTO tenants (id, name, slug, status, plan, settings) VALUES
 INSERT INTO integrations (id, tenant_id, name, type, is_active) VALUES
 (gen_random_uuid(), 'minha-empresa', 'Agendamento', 'app', true);
 
--- Adicionar integração SMS (NitroSMS)
+-- Adicionar integração SMS (NitroSMS) - apenas sender_id
 INSERT INTO integrations 
-  (id, tenant_id, name, type, nitro_sub_account, nitro_sub_account_pass, nitro_sender_id, is_active) 
+  (id, tenant_id, name, type, nitro_sender_id, is_active) 
 VALUES 
-  (gen_random_uuid(), 'minha-empresa', 'SMS', 'sms', '001_mysub', 'senha', 'MinhaEmp', true);
+  (gen_random_uuid(), 'minha-empresa', 'SMS', 'sms', 'MinhaEmp', true);
 
 -- Adicionar serviços
 INSERT INTO services (tenant_id, name, description, duration, price) VALUES

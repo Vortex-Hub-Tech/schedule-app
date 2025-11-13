@@ -4,10 +4,24 @@ const { pool, vortexPool } = require('../db');
 const NITROSMS_API_URL = 'http://nitrosms.cm/api_v1';
 
 class NitroSMSService {
-  async getTenantConfig(tenantId) {
+  getGlobalCredentials() {
+    const subAccount = process.env.NITRO_SUB_ACCOUNT;
+    const subAccountPass = process.env.NITRO_SUB_ACCOUNT_PASS;
+
+    if (!subAccount || !subAccountPass) {
+      throw new Error('Credenciais globais NitroSMS não configuradas. Configure NITRO_SUB_ACCOUNT e NITRO_SUB_ACCOUNT_PASS');
+    }
+
+    return {
+      subAccount,
+      subAccountPass
+    };
+  }
+
+  async getTenantSenderId(tenantId) {
     try {
       const result = await vortexPool.query(
-        `SELECT nitro_sub_account, nitro_sub_account_pass, nitro_sender_id 
+        `SELECT nitro_sender_id 
          FROM integrations 
          WHERE tenant_id = $1 
          AND type = 'sms' 
@@ -17,22 +31,18 @@ class NitroSMSService {
       );
 
       if (result.rows.length === 0) {
-        throw new Error('Configuração NitroSMS não encontrada para este tenant');
+        throw new Error('Configuração de sender_id não encontrada para este tenant');
       }
 
-      const config = result.rows[0];
+      const senderId = result.rows[0].nitro_sender_id;
       
-      if (!config.nitro_sub_account || !config.nitro_sub_account_pass || !config.nitro_sender_id) {
-        throw new Error('Configuração NitroSMS incompleta. Configure sub_account, sub_account_pass e sender_id');
+      if (!senderId) {
+        throw new Error('Sender ID não configurado para este tenant');
       }
 
-      return {
-        subAccount: config.nitro_sub_account,
-        subAccountPass: config.nitro_sub_account_pass,
-        senderId: config.nitro_sender_id
-      };
+      return senderId;
     } catch (error) {
-      console.error('❌ Erro ao buscar configuração NitroSMS:', error.message);
+      console.error('❌ Erro ao buscar sender_id do tenant:', error.message);
       throw error;
     }
   }
@@ -41,23 +51,24 @@ class NitroSMSService {
     let logId = null;
     
     try {
-      const config = await this.getTenantConfig(tenantId);
+      const credentials = this.getGlobalCredentials();
+      const senderId = await this.getTenantSenderId(tenantId);
 
       const logResult = await pool.query(
         `INSERT INTO sms_logs (tenant_id, phone, message, sender_id, status)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id`,
-        [tenantId, phone, message, config.senderId, 'sending']
+        [tenantId, phone, message, senderId, 'sending']
       );
       logId = logResult.rows[0].id;
 
       const cleanPhone = phone.replace(/\D/g, '');
 
       const params = new URLSearchParams({
-        sub_account: config.subAccount,
-        sub_account_pass: config.subAccountPass,
+        sub_account: credentials.subAccount,
+        sub_account_pass: credentials.subAccountPass,
         action: 'send_sms',
-        sender_id: config.senderId,
+        sender_id: senderId,
         message: message,
         recipients: cleanPhone
       });
@@ -76,7 +87,7 @@ class NitroSMSService {
         ['sent', JSON.stringify(response.data), logId]
       );
 
-      console.log(`✅ SMS enviado para ${phone} via NitroSMS (Sender: ${config.senderId}, Log ID: ${logId})`);
+      console.log(`✅ SMS enviado para ${phone} via NitroSMS (Sender: ${senderId}, Log ID: ${logId})`);
       
       return {
         success: true,
@@ -108,15 +119,16 @@ class NitroSMSService {
 
   async sendBulkSMS(tenantId, phones, message) {
     try {
-      const config = await this.getTenantConfig(tenantId);
+      const credentials = this.getGlobalCredentials();
+      const senderId = await this.getTenantSenderId(tenantId);
 
       const cleanPhones = phones.map(p => p.replace(/\D/g, '')).join(',');
 
       const params = new URLSearchParams({
-        sub_account: config.subAccount,
-        sub_account_pass: config.subAccountPass,
+        sub_account: credentials.subAccount,
+        sub_account_pass: credentials.subAccountPass,
         action: 'send_sms',
-        sender_id: config.senderId,
+        sender_id: senderId,
         message: message,
         recipients: cleanPhones
       });
@@ -132,7 +144,7 @@ class NitroSMSService {
         await pool.query(
           `INSERT INTO sms_logs (tenant_id, phone, message, sender_id, status, nitro_response, sent_at)
            VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-          [tenantId, phone, message, config.senderId, 'sent', JSON.stringify(response.data)]
+          [tenantId, phone, message, senderId, 'sent', JSON.stringify(response.data)]
         );
       }
 
