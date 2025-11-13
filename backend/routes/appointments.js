@@ -7,7 +7,7 @@ router.use(validateTenant);
 
 router.get('/', async (req, res) => {
   try {
-    const { phone, status } = req.query;
+    const { phone, status, deviceId } = req.query;
     let query = `
       SELECT a.*, s.name as service_name, s.duration, s.price 
       FROM appointments a 
@@ -15,6 +15,11 @@ router.get('/', async (req, res) => {
       WHERE a.tenant_id = $1
     `;
     const params = [req.tenantId];
+
+    if (deviceId) {
+      params.push(deviceId);
+      query += ` AND a.device_id = $${params.length}`;
+    }
 
     if (phone) {
       params.push(phone);
@@ -56,11 +61,11 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { service_id, client_name, client_phone, appointment_date, appointment_time, notes } = req.body;
+    const { service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id } = req.body;
     
     const result = await pool.query(
-      'INSERT INTO appointments (tenant_id, service_id, client_name, client_phone, appointment_date, appointment_time, notes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [req.tenantId, service_id, client_name, client_phone, appointment_date, appointment_time, notes]
+      'INSERT INTO appointments (tenant_id, service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [req.tenantId, service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {

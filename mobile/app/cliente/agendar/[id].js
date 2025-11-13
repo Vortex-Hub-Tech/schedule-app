@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import apiClient from '../../../config/api';
-import { TenantStorage } from '../../../utils/storage';
+import { TenantStorage, DeviceStorage } from '../../../utils/storage';
 
 export default function AgendarServico() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function AgendarServico() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deviceId, setDeviceId] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -27,6 +28,10 @@ export default function AgendarServico() {
   const loadData = async () => {
     const savedTenant = await TenantStorage.getTenant();
     setTenant(savedTenant);
+    
+    const id = await DeviceStorage.getDeviceId();
+    setDeviceId(id);
+    
     loadService();
   };
 
@@ -48,19 +53,31 @@ export default function AgendarServico() {
 
     setLoading(true);
     try {
-      await apiClient.validation.sendCode(clientPhone);
-      router.push({
-        pathname: '/cliente/validar',
-        params: {
-          serviceId: id,
-          clientName,
-          clientPhone,
-          date: format(selectedDate, 'yyyy-MM-dd'),
-          time: format(selectedTime, 'HH:mm'),
-        },
+      await apiClient.appointments.create({
+        service_id: id,
+        client_name: clientName,
+        client_phone: clientPhone,
+        appointment_date: format(selectedDate, 'yyyy-MM-dd'),
+        appointment_time: format(selectedTime, 'HH:mm'),
+        device_id: deviceId,
       });
+      
+      Alert.alert(
+        'Sucesso!',
+        'Agendamento realizado com sucesso',
+        [
+          {
+            text: 'Ver meus agendamentos',
+            onPress: () => router.push('/cliente/meus-agendamentos'),
+          },
+          {
+            text: 'Voltar',
+            onPress: () => router.back(),
+          },
+        ]
+      );
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível enviar o código de validação');
+      Alert.alert('Erro', 'Não foi possível criar o agendamento');
     } finally {
       setLoading(false);
     }
@@ -178,7 +195,7 @@ export default function AgendarServico() {
           disabled={loading}
         >
           <Text className="text-white text-center font-bold text-base">
-            {loading ? 'Enviando...' : 'Continuar →'}
+            {loading ? 'Agendando...' : 'Confirmar Agendamento'}
           </Text>
         </TouchableOpacity>
       </View>
