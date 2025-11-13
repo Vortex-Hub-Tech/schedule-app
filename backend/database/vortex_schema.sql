@@ -7,9 +7,12 @@ CREATE TABLE IF NOT EXISTS tenants (
   status VARCHAR(50) DEFAULT 'active',
   plan VARCHAR(50),
   settings JSONB DEFAULT '{}',
+  device_id VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_tenants_device_id ON tenants(device_id);
 
 -- Tabela de integrações
 CREATE TABLE IF NOT EXISTS integrations (

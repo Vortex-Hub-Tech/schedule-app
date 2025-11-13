@@ -60,4 +60,8 @@ export default {
     sendCode: (phone) => api.post('/validation/send-code', { phone }),
     verifyCode: (phone, code) => api.post('/validation/verify-code', { phone, code }),
   },
+  owner: {
+    verifyOwner: (tenantId, deviceId) => axios.post(`${API_URL}/owner/verify-owner`, { tenantId, deviceId }),
+    claimOwnership: (tenantId, deviceId) => axios.post(`${API_URL}/owner/claim-ownership`, { tenantId, deviceId }),
+  },
 };

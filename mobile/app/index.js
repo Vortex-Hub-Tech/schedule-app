@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -20,7 +20,7 @@ export default function Home() {
   const initializeApp = async () => {
     try {
       const savedUserType = await DeviceStorage.getUserType();
-      
+
       if (savedUserType) {
         setUserType(savedUserType);
         await loadTenantData();
@@ -39,13 +39,13 @@ export default function Home() {
   const loadTenantData = async () => {
     try {
       const savedTenant = await TenantStorage.getTenant();
-      
+
       if (!savedTenant || savedTenant.id !== TENANT_CONFIG.TENANT_ID) {
         const response = await apiClient.tenants.getById(TENANT_CONFIG.TENANT_ID);
         const tenantData = response.data;
         await TenantStorage.setTenant(tenantData);
         setTenant(tenantData);
-        
+
         const bootstrap = await apiClient.tenants.getBootstrap(TENANT_CONFIG.TENANT_ID);
         await TenantStorage.setTenantData(bootstrap.data);
       } else {
@@ -60,7 +60,14 @@ export default function Home() {
     try {
       setLoading(true);
       const deviceId = await DeviceStorage.getDeviceId();
-      
+
+      // Verifica se o device_id do usuário corresponde ao device_id da tenant
+      if (tenant && tenant.device_id && tenant.device_id !== deviceId) {
+        Alert.alert('Acesso Negado', 'Você não é o proprietário desta conta.');
+        setLoading(false);
+        return;
+      }
+
       await DeviceStorage.setUserType(type);
       await DeviceStorage.setUserSession({
         deviceId,
@@ -68,7 +75,7 @@ export default function Home() {
         tenantId: TENANT_CONFIG.TENANT_ID,
         createdAt: new Date().toISOString(),
       });
-      
+
       setUserType(type);
       router.replace(type === 'cliente' ? '/cliente' : '/prestador');
     } catch (error) {
@@ -114,10 +121,10 @@ export default function Home() {
           <Text className="text-gray-500 text-center mb-6">
             Escolha o perfil adequado para continuar
           </Text>
-          
+
           <View className="space-y-4">
             {/* Card Cliente */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={{ backgroundColor: colors.light }}
               className="rounded-2xl p-6 border-2 active:opacity-70"
               activeOpacity={0.8}
@@ -140,7 +147,7 @@ export default function Home() {
             </TouchableOpacity>
 
             {/* Card Prestador */}
-            <TouchableOpacity 
+            <TouchableOpacity
               className="bg-gray-100 rounded-2xl p-6 border-2 border-gray-200 active:opacity-70"
               activeOpacity={0.8}
               onPress={() => selectUserType('prestador')}
