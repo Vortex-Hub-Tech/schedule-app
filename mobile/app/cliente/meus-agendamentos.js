@@ -1,41 +1,40 @@
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import apiClient from '../../config/api';
-import { TenantStorage } from '../../utils/storage';
+import { TenantStorage, DeviceStorage } from '../../utils/storage';
 
 export default function MeusAgendamentos() {
   const router = useRouter();
-  const [phone, setPhone] = useState('');
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [tenant, setTenant] = useState(null);
+  const [deviceId, setDeviceId] = useState(null);
 
   useEffect(() => {
-    loadTenant();
+    loadData();
   }, []);
 
-  const loadTenant = async () => {
+  const loadData = async () => {
     const savedTenant = await TenantStorage.getTenant();
     setTenant(savedTenant);
+    
+    const id = await DeviceStorage.getDeviceId();
+    setDeviceId(id);
+    
+    loadAppointments(id);
   };
 
-  const loadAppointments = async () => {
-    if (!phone.trim()) {
-      Alert.alert('Atenção', 'Digite seu telefone');
-      return;
-    }
-
+  const loadAppointments = async (id) => {
     setLoading(true);
     try {
-      const response = await apiClient.appointments.getAll({ phone });
+      const response = await apiClient.appointments.getAll({ deviceId: id });
       setAppointments(response.data);
-      setSearched(true);
       await TenantStorage.cacheAppointments(response.data);
     } catch (error) {
+      console.error('Erro ao carregar agendamentos:', error);
       Alert.alert('Erro', 'Não foi possível carregar os agendamentos');
     } finally {
       setLoading(false);
@@ -54,7 +53,7 @@ export default function MeusAgendamentos() {
           onPress: async () => {
             try {
               await apiClient.appointments.updateStatus(id, 'cancelado');
-              loadAppointments();
+              loadAppointments(deviceId);
               Alert.alert('Sucesso', 'Agendamento cancelado');
             } catch (error) {
               Alert.alert('Erro', 'Não foi possível cancelar');
@@ -103,81 +102,68 @@ export default function MeusAgendamentos() {
         <Text className="text-white/90">Consulte seus agendamentos</Text>
       </View>
 
-      <View className="px-6 -mt-4 mb-4">
-        <View className="bg-white rounded-xl p-4 shadow-sm">
-          <TextInput
-            className="bg-gray-50 border border-gray-300 rounded-lg p-4 mb-3 text-base"
-            placeholder="Digite seu telefone"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            placeholderTextColor="#9ca3af"
-          />
-          <TouchableOpacity
-            className={`${themeBg} py-4 rounded-lg`}
-            onPress={loadAppointments}
-            disabled={loading}
-          >
-            <Text className="text-white text-center font-semibold text-base">
-              {loading ? 'Buscando...' : 'Buscar Agendamentos'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView className="flex-1 px-6">
+      <ScrollView className="flex-1 px-6 -mt-4">
         {loading ? (
-          <View className="py-12">
+          <View className="bg-white rounded-xl p-8 items-center mt-4">
             <ActivityIndicator size="large" color="#0ea5e9" />
+            <Text className="text-gray-600 mt-4">Carregando...</Text>
           </View>
-        ) : searched && appointments.length === 0 ? (
-          <View className="bg-white rounded-xl p-8 items-center">
+        ) : appointments.length === 0 ? (
+          <View className="bg-white rounded-xl p-8 items-center mt-4">
             <Text className="text-6xl mb-4">📅</Text>
             <Text className="text-gray-500 text-center text-base">
-              Nenhum agendamento encontrado
+              Você ainda não tem agendamentos
             </Text>
+            <TouchableOpacity
+              className={`${themeBg} px-6 py-3 rounded-lg mt-4`}
+              onPress={() => router.push('/cliente')}
+            >
+              <Text className="text-white font-semibold">Agendar Serviço</Text>
+            </TouchableOpacity>
           </View>
         ) : (
-          appointments.map((appointment) => {
-            const statusColors = getStatusColor(appointment.status);
-            return (
-              <View key={appointment.id} className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
-                <View className="flex-row justify-between items-start mb-3">
-                  <Text className="text-xl font-bold text-gray-800 flex-1">
-                    {appointment.service_name}
-                  </Text>
-                  <View className={`${statusColors.bg} px-3 py-1 rounded-full`}>
-                    <Text className={`text-xs font-bold ${statusColors.text} uppercase`}>
-                      {appointment.status}
+          <View className="mt-4">
+            {appointments.map((appointment) => {
+              const statusColors = getStatusColor(appointment.status);
+              return (
+                <View key={appointment.id} className="bg-white rounded-xl p-5 mb-4 shadow-sm border border-gray-100">
+                  <View className="flex-row justify-between items-start mb-3">
+                    <Text className="text-xl font-bold text-gray-800 flex-1">
+                      {appointment.service_name}
+                    </Text>
+                    <View className={`${statusColors.bg} px-3 py-1 rounded-full`}>
+                      <Text className={`text-xs font-bold ${statusColors.text} uppercase`}>
+                        {appointment.status}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View className="space-y-2 mb-4">
+                    <Text className="text-gray-600 text-base">
+                      📅 {format(parseISO(appointment.appointment_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </Text>
+                    <Text className="text-gray-600 text-base">
+                      ⏰ {appointment.appointment_time.substring(0, 5)}
+                    </Text>
+                    <Text className="text-gray-600 text-base">
+                      👤 {appointment.client_name}
                     </Text>
                   </View>
-                </View>
-                
-                <View className="space-y-2 mb-4">
-                  <Text className="text-gray-600 text-base">
-                    📅 {format(parseISO(appointment.appointment_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                  </Text>
-                  <Text className="text-gray-600 text-base">
-                    ⏰ {appointment.appointment_time.substring(0, 5)}
-                  </Text>
-                  <Text className="text-gray-600 text-base">
-                    👤 {appointment.client_name}
-                  </Text>
-                </View>
 
-                {appointment.status === 'pendente' && (
-                  <TouchableOpacity
-                    className="bg-red-500 py-3 rounded-lg"
-                    onPress={() => handleCancel(appointment.id)}
-                  >
-                    <Text className="text-white text-center font-semibold">
-                      Cancelar Agendamento
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-          })
+                  {appointment.status === 'pendente' && (
+                    <TouchableOpacity
+                      className="bg-red-500 py-3 rounded-lg"
+                      onPress={() => handleCancel(appointment.id)}
+                    >
+                      <Text className="text-white text-center font-semibold">
+                        Cancelar Agendamento
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
+          </View>
         )}
       </ScrollView>
     </View>

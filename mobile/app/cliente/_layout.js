@@ -1,7 +1,6 @@
 import { Stack } from 'expo-router';
-import '../global.css';
 
-export default function Layout() {
+export default function ClienteLayout() {
   return (
     <Stack
       screenOptions={{
@@ -17,26 +16,28 @@ export default function Layout() {
       <Stack.Screen 
         name="index" 
         options={{ 
-          title: 'Bem-vindo',
+          title: 'Serviços Disponíveis',
           headerShown: false,
         }} 
       />
       <Stack.Screen 
-        name="select-tenant" 
+        name="meus-agendamentos" 
         options={{ 
-          title: 'Selecionar Empresa',
+          title: 'Meus Agendamentos',
           headerShown: false,
         }} 
       />
       <Stack.Screen 
-        name="cliente" 
+        name="validar" 
         options={{ 
+          title: 'Validar Código',
           headerShown: false,
         }} 
       />
       <Stack.Screen 
-        name="prestador" 
+        name="agendar/[id]" 
         options={{ 
+          title: 'Agendar Serviço',
           headerShown: false,
         }} 
       />

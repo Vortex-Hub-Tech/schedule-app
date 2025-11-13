@@ -1,7 +1,6 @@
 import { Stack } from 'expo-router';
-import '../global.css';
 
-export default function Layout() {
+export default function PrestadorLayout() {
   return (
     <Stack
       screenOptions={{
@@ -17,26 +16,35 @@ export default function Layout() {
       <Stack.Screen 
         name="index" 
         options={{ 
-          title: 'Bem-vindo',
+          title: 'Painel do Prestador',
           headerShown: false,
         }} 
       />
       <Stack.Screen 
-        name="select-tenant" 
+        name="agendamentos" 
         options={{ 
-          title: 'Selecionar Empresa',
+          title: 'Gerenciar Agendamentos',
           headerShown: false,
         }} 
       />
       <Stack.Screen 
-        name="cliente" 
+        name="servicos/index" 
         options={{ 
+          title: 'Meus Serviços',
           headerShown: false,
         }} 
       />
       <Stack.Screen 
-        name="prestador" 
+        name="servicos/novo" 
         options={{ 
+          title: 'Novo Serviço',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
+        name="servicos/editar/[id]" 
+        options={{ 
+          title: 'Editar Serviço',
           headerShown: false,
         }} 
       />
