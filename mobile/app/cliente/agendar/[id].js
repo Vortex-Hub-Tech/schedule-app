@@ -65,9 +65,10 @@ export default function AgendarServico() {
       setCodeSent(true);
       Alert.alert(
         'Código Enviado! ✅',
-        'Verifique seu WhatsApp e digite o código de 6 dígitos que você recebeu.',
+        'Enviamos um SMS para você. Digite o código de 6 dígitos recebido.',
         [{ text: 'OK' }]
       );
+
     } catch (error) {
       console.error('Erro ao enviar código:', error);
       Alert.alert(
@@ -263,7 +264,7 @@ export default function AgendarServico() {
                 <ActivityIndicator color="white" />
               ) : (
                 <Text className="text-white font-bold text-base">
-                  📱 Enviar Código via WhatsApp
+                  📱 Enviar Código via SMS
                 </Text>
               )}
             </TouchableOpacity>
