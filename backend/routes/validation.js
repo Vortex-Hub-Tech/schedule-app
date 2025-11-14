@@ -33,7 +33,7 @@ router.post('/send-code', async (req, res) => {
                     `Este código expira em 10 minutos.\n\n` +
                     `Não compartilhe este código com ninguém!`;
 
-    const smsResult = await nitroSMS.sendSMS(req.tenantId, phone, message);
+    const smsResult = await nitroSMS.sendSMS(req.tenantId, phone, message, null, true);
     
     if (!smsResult.success) {
       console.log(`⚠️ SMS não enviado, mas código foi gerado: ${code} para ${phone} (Tenant: ${req.tenant.name})`);
