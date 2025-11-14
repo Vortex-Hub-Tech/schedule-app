@@ -75,7 +75,7 @@ class NitroSMSService {
 
       const response = await axios.post(NITROSMS_API_URL, postData, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
         timeout: 15000
       });
@@ -140,7 +140,7 @@ class NitroSMSService {
         try {
           const response = await axios.post(NITROSMS_API_URL, postData, {
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/x-www-form-urlencoded'
             },
             timeout: 15000
           });
