@@ -1,10 +1,11 @@
 
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import apiClient from '../../config/api';
 import { TenantStorage } from '../../utils/storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getThemeColors } from '../../utils/theme';
 
 export default function ClienteHome() {
   const router = useRouter();
@@ -48,20 +49,9 @@ export default function ClienteHome() {
     loadServices();
   };
 
-  const getThemeColor = (theme) => {
-    switch (theme) {
-      case 'pink':
-        return { primary: '#ec4899', light: '#fce7f3', text: 'text-pink-600', gradient: ['#ec4899', '#f472b6'] };
-      case 'blue':
-        return { primary: '#3b82f6', light: '#dbeafe', text: 'text-blue-600', gradient: ['#3b82f6', '#60a5fa'] };
-      case 'orange':
-        return { primary: '#f97316', light: '#ffedd5', text: 'text-orange-600', gradient: ['#f97316', '#fb923c'] };
-      default:
-        return { primary: '#0ea5e9', light: '#e0f2fe', text: 'text-sky-600', gradient: ['#0ea5e9', '#38bdf8'] };
-    }
-  };
-
-  const colors = getThemeColor(tenant?.settings?.theme);
+  const colors = getThemeColors(tenant?.settings?.theme || 'sky');
+  const welcomeMessage = tenant?.settings?.welcomeMessage || 'Olá! 👋';
+  const logoUrl = tenant?.settings?.logoUrl;
 
   if (loading) {
     return (
@@ -82,9 +72,18 @@ export default function ClienteHome() {
         className="pt-16 pb-10 px-6 rounded-b-[32px] shadow-2xl"
       >
         <View className="flex-row items-center justify-between mb-5">
+          {logoUrl && (
+            <View className="bg-white/20 w-16 h-16 rounded-2xl items-center justify-center border-2 border-white/30 mr-4">
+              <Image 
+                source={{ uri: logoUrl }} 
+                className="w-14 h-14 rounded-xl"
+                resizeMode="contain"
+              />
+            </View>
+          )}
           <View className="flex-1">
             <Text className="text-white/90 text-sm font-semibold mb-1 tracking-wide">
-              Olá! 👋
+              {welcomeMessage}
             </Text>
             <Text className="text-white text-3xl font-bold mt-1">
               Serviços Disponíveis

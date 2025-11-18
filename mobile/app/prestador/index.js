@@ -1,9 +1,10 @@
 
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { TenantStorage, DeviceStorage } from '../../utils/storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getThemeColors } from '../../utils/theme';
 
 export default function PrestadorHome() {
   const router = useRouter();
@@ -23,20 +24,8 @@ export default function PrestadorHome() {
     router.replace('/');
   };
 
-  const getThemeColor = (theme) => {
-    switch (theme) {
-      case 'pink':
-        return { primary: '#ec4899', light: '#fce7f3', gradient: ['#ec4899', '#f472b6'] };
-      case 'blue':
-        return { primary: '#3b82f6', light: '#dbeafe', gradient: ['#3b82f6', '#60a5fa'] };
-      case 'orange':
-        return { primary: '#f97316', light: '#ffedd5', gradient: ['#f97316', '#fb923c'] };
-      default:
-        return { primary: '#0ea5e9', light: '#e0f2fe', gradient: ['#0ea5e9', '#38bdf8'] };
-    }
-  };
-
-  const colors = getThemeColor(tenant?.settings?.theme);
+  const colors = getThemeColors(tenant?.settings?.theme || 'sky');
+  const logoUrl = tenant?.settings?.logoUrl;
 
   const menuItems = [
     {
@@ -84,7 +73,15 @@ export default function PrestadorHome() {
       >
         <View className="flex-row items-center justify-between mb-6">
           <View className="bg-white/20 w-20 h-20 rounded-3xl items-center justify-center border-2 border-white/30">
-            <Text className="text-white text-4xl">💼</Text>
+            {logoUrl ? (
+              <Image 
+                source={{ uri: logoUrl }} 
+                className="w-16 h-16 rounded-2xl"
+                resizeMode="contain"
+              />
+            ) : (
+              <Text className="text-white text-4xl">💼</Text>
+            )}
           </View>
           <TouchableOpacity
             className="bg-white/20 px-5 py-3 rounded-2xl border border-white/30"

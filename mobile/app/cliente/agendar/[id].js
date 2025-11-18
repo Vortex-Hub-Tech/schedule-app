@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import apiClient from '../../../config/api';
 import { TenantStorage, DeviceStorage } from '../../../utils/storage';
+import { getThemeColors } from '../../../utils/theme';
 
 export default function AgendarServico() {
   const router = useRouter();
@@ -32,6 +33,8 @@ export default function AgendarServico() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const colors = getThemeColors(tenant?.settings?.theme || 'sky');;
 
   const loadData = async () => {
     const savedTenant = await TenantStorage.getTenant();
@@ -258,7 +261,7 @@ export default function AgendarServico() {
               onPress={handleSendCode}
               disabled={sendingCode || !clientPhone.trim()}
               className="rounded-xl p-4 items-center mb-2"
-              style={{ backgroundColor: clientPhone.trim() ? colors.primary : '#ccc' }}
+              style={{ backgroundColor: clientPhone.trim() ? colors.primary : '#9ca3af' }}
             >
               {sendingCode ? (
                 <ActivityIndicator color="white" />
