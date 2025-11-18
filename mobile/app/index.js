@@ -21,6 +21,7 @@ export default function Home() {
       // Obtém device_id do dispositivo
       const deviceId = await DeviceStorage.getDeviceId();
 
+      console.log('Device ID:', deviceId);
       // Verifica se é proprietário
       const ownerCheck = await apiClient.owner.verifyOwner(
         TENANT_CONFIG.TENANT_ID,
