@@ -28,6 +28,20 @@ export default function PrestadorLayout() {
         }} 
       />
       <Stack.Screen 
+        name="relatorios" 
+        options={{ 
+          title: 'Relatórios',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
+        name="configuracoes" 
+        options={{ 
+          title: 'Configurações',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="servicos/index" 
         options={{ 
           title: 'Meus Serviços',
