@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool, vortexPool } = require('../db');
-
+const { validateTenant } = require('../middleware/tenant');
 router.get('/', async (req, res) => {
   try {
     const result = await vortexPool.query(
@@ -110,28 +110,6 @@ router.get('/:id/bootstrap', async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar bootstrap:', error);
     res.status(500).json({ error: 'Erro ao carregar dados da empresa' });
-  }
-});
-
-module.exports = router;
-const express = require('express');
-const router = express.Router();
-const { vortexPool } = require('../db');
-const { validateTenant } = require('../middleware/tenant');
-
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await vortexPool.query(
-      'SELECT * FROM tenants WHERE id = $1',
-      [id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Tenant não encontrado' });
-    }
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar tenant' });
   }
 });
 
