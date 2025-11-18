@@ -1,22 +1,11 @@
 let selectedPlan = null;
 let selectedAmount = 0;
 
-function initPaymentModal() {
-  alert('Página de pagamento será implementada em breve!');
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initSmoothScroll();
     initCustomizeForm();
     initScrollAnimations();
-    const cta = document.querySelectorAll('.cta-btn');
-    cta.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            initPaymentModal();
-        });
-    });
 });
 
 function initMobileMenu() {
