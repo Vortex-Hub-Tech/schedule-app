@@ -1,7 +1,5 @@
 let selectedPlan = null;
 let selectedAmount = 0;
-let stripe = null;
-let elements = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
@@ -80,7 +78,7 @@ function openPaymentModal() {
     const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.style.display = 'block';
-        initStripePayment();
+        showPaymentForm();
     }
 }
 
@@ -100,56 +98,69 @@ window.addEventListener('click', (event) => {
     }
 });
 
-async function initStripePayment() {
-    try {
-        const response = await fetch('/api/create-payment-intent', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                amount: selectedAmount,
-                plan: selectedPlan
-            })
-        });
+function showPaymentForm() {
+    const paymentElement = document.getElementById('payment-element');
+    if (paymentElement) {
+        paymentElement.innerHTML = `
+            <div class="payment-form">
+                <p class="payment-info">
+                    <strong>Plano ${selectedPlan === 'professional' ? 'Professional' : 'Enterprise'}</strong><br>
+                    R$ ${selectedAmount.toFixed(2)}/mês
+                </p>
+                <div class="form-group">
+                    <label>Nome Completo *</label>
+                    <input type="text" id="customer-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="customer-email" required>
+                </div>
+                <div class="form-group">
+                    <label>CPF/CNPJ *</label>
+                    <input type="text" id="customer-cpf" required>
+                </div>
+                <div class="form-group">
+                    <label>Telefone *</label>
+                    <input type="tel" id="customer-phone" required>
+                </div>
+                <div class="payment-methods">
+                    <p><strong>Forma de Pagamento:</strong></p>
+                    <div class="method-options">
+                        <label class="method-option">
+                            <input type="radio" name="payment-method" value="CREDIT_CARD" checked>
+                            <span>💳 Cartão de Crédito</span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="payment-method" value="BOLETO">
+                            <span>📄 Boleto</span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="payment-method" value="PIX">
+                            <span>💰 PIX</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
-        if (!response.ok) {
-            throw new Error('Erro ao iniciar pagamento');
-        }
-
-        const { clientSecret, publicKey } = await response.json();
-
-        if (!stripe && publicKey) {
-            stripe = Stripe(publicKey);
-        }
-
-        if (stripe && clientSecret) {
-            const appearance = {
-                theme: 'stripe',
-                variables: {
-                    colorPrimary: '#6366F1',
-                }
-            };
-
-            elements = stripe.elements({ clientSecret, appearance });
-            const paymentElement = elements.create('payment');
-            paymentElement.mount('#payment-element');
-
-            const submitButton = document.getElementById('submit-payment');
-            if (submitButton) {
-                submitButton.onclick = handlePaymentSubmit;
-            }
-        }
-    } catch (error) {
-        console.error('Erro ao configurar pagamento:', error);
-        showPaymentMessage('Erro ao carregar sistema de pagamento. Tente novamente.', 'error');
+    const submitButton = document.getElementById('submit-payment');
+    if (submitButton) {
+        submitButton.onclick = handlePaymentSubmit;
     }
 }
 
 async function handlePaymentSubmit(e) {
     e.preventDefault();
 
-    if (!stripe || !elements) {
+    const name = document.getElementById('customer-name')?.value;
+    const email = document.getElementById('customer-email')?.value;
+    const cpfCnpj = document.getElementById('customer-cpf')?.value;
+    const phone = document.getElementById('customer-phone')?.value;
+    const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
+
+    if (!name || !email || !cpfCnpj || !phone) {
+        showPaymentMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
         return;
     }
 
@@ -157,21 +168,89 @@ async function handlePaymentSubmit(e) {
     submitButton.disabled = true;
     submitButton.textContent = 'Processando...';
 
-    const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-            return_url: window.location.origin + '/success',
-        },
-    });
+    try {
+        const response = await fetch('/api/create-subscription', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                plan: selectedPlan,
+                customer: {
+                    name,
+                    email,
+                    cpfCnpj,
+                    phone
+                },
+                paymentMethod
+            })
+        });
 
-    if (error) {
-        showPaymentMessage(error.message, 'error');
+        if (!response.ok) {
+            throw new Error('Erro ao processar pagamento');
+        }
+
+        const result = await response.json();
+
+        if (result.demo) {
+            showPaymentMessage(result.message || 'Modo demonstração - Configure ASAAS_API_KEY', 'info');
+            setTimeout(() => {
+                window.location.href = '/success.html';
+            }, 2000);
+        } else if (result.invoiceUrl) {
+            window.location.href = result.invoiceUrl;
+        } else if (result.pixCopyPaste) {
+            showPixPayment(result.pixCopyPaste, result.pixQrCode);
+        } else if (result.bankSlipUrl) {
+            window.open(result.bankSlipUrl, '_blank');
+            showPaymentMessage('Boleto gerado! Verifique a nova aba.', 'success');
+        } else {
+            showPaymentMessage('Assinatura criada com sucesso!', 'success');
+            setTimeout(() => {
+                window.location.href = '/success.html';
+            }, 2000);
+        }
+
+    } catch (error) {
+        console.error('Erro:', error);
+        showPaymentMessage('Erro ao processar pagamento. Tente novamente.', 'error');
         submitButton.disabled = false;
         submitButton.textContent = 'Confirmar Pagamento';
-    } else {
-        showPaymentMessage('Pagamento realizado com sucesso!', 'success');
     }
 }
+
+function showPixPayment(pixCode, qrCodeBase64) {
+    const paymentElement = document.getElementById('payment-element');
+    if (paymentElement) {
+        paymentElement.innerHTML = `
+            <div class="pix-payment">
+                <h3>Pague com PIX</h3>
+                ${qrCodeBase64 ? `<img src="data:image/png;base64,${qrCodeBase64}" alt="QR Code PIX" style="max-width: 250px; margin: 20px auto; display: block;">` : ''}
+                <p><strong>Código PIX Copia e Cola:</strong></p>
+                <div class="pix-code">
+                    <code id="pix-code-text">${pixCode}</code>
+                    <button onclick="copyPixCode()" class="btn btn-secondary" style="margin-top: 10px;">
+                        Copiar Código PIX
+                    </button>
+                </div>
+                <p style="color: #64748B; font-size: 0.875rem; margin-top: 20px;">
+                    Após o pagamento, você será redirecionado automaticamente.
+                </p>
+            </div>
+        `;
+    }
+}
+
+window.copyPixCode = function() {
+    const pixCode = document.getElementById('pix-code-text')?.textContent;
+    if (pixCode) {
+        navigator.clipboard.writeText(pixCode).then(() => {
+            showNotification('Código PIX copiado!', 'success');
+        }).catch(() => {
+            showNotification('Erro ao copiar código', 'error');
+        });
+    }
+};
 
 function showPaymentMessage(message, type) {
     const messageDiv = document.getElementById('payment-message');
@@ -273,6 +352,58 @@ style.textContent = `
             transform: translateX(100%);
             opacity: 0;
         }
+    }
+    .payment-form {
+        text-align: left;
+    }
+    .payment-info {
+        background: #F8FAFC;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    .payment-methods {
+        margin-top: 1.5rem;
+    }
+    .method-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+    }
+    .method-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border: 2px solid #E2E8F0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .method-option:hover {
+        border-color: #6366F1;
+        background: #F8FAFC;
+    }
+    .method-option input[type="radio"]:checked + span {
+        font-weight: 600;
+        color: #6366F1;
+    }
+    .pix-payment {
+        text-align: center;
+    }
+    .pix-code {
+        background: #F8FAFC;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    .pix-code code {
+        word-break: break-all;
+        font-size: 0.75rem;
+        display: block;
+        margin-bottom: 10px;
     }
 `;
 document.head.appendChild(style);

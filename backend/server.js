@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 
-const { handleStripeWebhook } = require('./routes/landing');
-app.post('/api/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+const { handleAsaasWebhook } = require('./routes/landing');
+app.post('/api/webhook/asaas', express.json(), handleAsaasWebhook);
 
 app.use(express.json());
 app.use('/landing', express.static('public/landing'));
