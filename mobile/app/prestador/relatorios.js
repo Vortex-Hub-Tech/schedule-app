@@ -47,14 +47,14 @@ export default function Relatorios() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-6 px-6 rounded-b-3xl shadow-lg">
+      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-6 px-6 shadow-lg">
         <TouchableOpacity onPress={() => router.back()} className="mb-4">
           <View className="flex-row items-center">
             <Text className="text-white text-2xl mr-2">←</Text>
             <Text className="text-white text-base font-medium">Voltar</Text>
           </View>
         </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold mb-1">Relatórios</Text>
+        <Text className="text-white text-3xl font-bold mb-1">📊 Relatórios</Text>
         <Text className="text-white/90 text-base">Analytics e métricas do negócio</Text>
       </View>
 
