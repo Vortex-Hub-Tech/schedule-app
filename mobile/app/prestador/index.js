@@ -1,7 +1,9 @@
+
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { TenantStorage, DeviceStorage } from '../../utils/storage';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PrestadorHome() {
   const router = useRouter();
@@ -24,13 +26,13 @@ export default function PrestadorHome() {
   const getThemeColor = (theme) => {
     switch (theme) {
       case 'pink':
-        return { primary: '#ec4899', light: '#fce7f3' };
+        return { primary: '#ec4899', light: '#fce7f3', gradient: ['#ec4899', '#f472b6'] };
       case 'blue':
-        return { primary: '#3b82f6', light: '#dbeafe' };
+        return { primary: '#3b82f6', light: '#dbeafe', gradient: ['#3b82f6', '#60a5fa'] };
       case 'orange':
-        return { primary: '#f97316', light: '#ffedd5' };
+        return { primary: '#f97316', light: '#ffedd5', gradient: ['#f97316', '#fb923c'] };
       default:
-        return { primary: '#0ea5e9', light: '#e0f2fe' };
+        return { primary: '#0ea5e9', light: '#e0f2fe', gradient: ['#0ea5e9', '#38bdf8'] };
     }
   };
 
@@ -38,146 +40,141 @@ export default function PrestadorHome() {
 
   const menuItems = [
     {
-      title: 'Meus Serviços',
-      description: 'Adicione, edite ou remova serviços',
+      title: 'Gerenciar Serviços',
+      description: 'Adicionar, editar e remover',
       icon: '📋',
       route: '/prestador/servicos',
-      color: colors.primary,
+      bgColor: colors.primary,
+      emoji: '✨',
     },
     {
-      title: 'Agendamentos',
-      description: 'Visualize e gerencie horários marcados',
+      title: 'Ver Agendamentos',
+      description: 'Visualizar e gerenciar horários',
       icon: '📅',
       route: '/prestador/agendamentos',
-      color: '#6366f1',
+      bgColor: '#6366f1',
+      emoji: '📆',
+    },
+    {
+      title: 'Relatórios',
+      description: 'Analytics e métricas detalhadas',
+      icon: '📊',
+      route: '/prestador/relatorios',
+      bgColor: '#8b5cf6',
+      emoji: '📈',
+    },
+    {
+      title: 'Configurações',
+      description: 'Personalize cores e preferências',
+      icon: '⚙️',
+      route: '/prestador/configuracoes',
+      bgColor: '#64748b',
+      emoji: '🎨',
     },
   ];
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-10 px-6 rounded-b-3xl shadow-lg">
+      {/* Header with Gradient */}
+      <LinearGradient
+        colors={colors.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="pt-16 pb-12 px-6 rounded-b-[32px] shadow-2xl"
+      >
         <View className="flex-row items-center justify-between mb-6">
-          <View className="bg-white/20 w-16 h-16 rounded-full items-center justify-center">
-            <Text className="text-white text-3xl">💼</Text>
+          <View className="bg-white/20 w-20 h-20 rounded-3xl items-center justify-center border-2 border-white/30">
+            <Text className="text-white text-4xl">💼</Text>
           </View>
           <TouchableOpacity
-            className="bg-white/20 px-4 py-2 rounded-full"
+            className="bg-white/20 px-5 py-3 rounded-2xl border border-white/30"
             onPress={handleLogout}
+            activeOpacity={0.8}
           >
-            <Text className="text-white font-semibold text-sm">Sair</Text>
+            <Text className="text-white font-bold text-sm tracking-wide">Sair →</Text>
           </TouchableOpacity>
         </View>
-        <Text className="text-white text-3xl font-bold mb-1">
+        <Text className="text-white text-3xl font-bold mb-2 tracking-tight">
           Painel do Prestador
         </Text>
-        <Text className="text-white/90 text-base">
+        <Text className="text-white/95 text-base font-medium">
           {tenant?.name || 'Gerencie seu negócio'}
         </Text>
-      </View>
+      </LinearGradient>
 
-      <ScrollView className="flex-1 px-6 -mt-4">
-        {/* Cards de Menu */}
-        <View className="px-6">
-          <TouchableOpacity
-            style={{ backgroundColor: colors.primary }}
-            className="flex-row items-center justify-between p-5 rounded-2xl mb-4 shadow-sm active:opacity-80"
-            activeOpacity={0.8}
-            onPress={() => router.push('/prestador/servicos')}
-          >
-            <View className="flex-row items-center">
-              <Text className="text-3xl mr-4">📋</Text>
-              <View>
-                <Text className="text-white text-lg font-bold mb-1">
-                  Gerenciar Serviços
-                </Text>
-                <Text className="text-white/80 text-sm">
-                  Adicionar, editar e remover serviços
-                </Text>
+      <ScrollView 
+        className="flex-1 px-6 -mt-6"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Menu Cards */}
+        <View className="space-y-4 mt-4">
+          {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              className="bg-white rounded-3xl p-6 shadow-lg active:opacity-70 border border-gray-50"
+              activeOpacity={0.8}
+              onPress={() => router.push(item.route)}
+              style={{
+                shadowColor: item.bgColor,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                elevation: 5,
+              }}
+            >
+              <View className="flex-row items-center">
+                <View 
+                  className="w-16 h-16 rounded-2xl items-center justify-center mr-4"
+                  style={{ backgroundColor: item.bgColor }}
+                >
+                  <Text className="text-3xl">{item.icon}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-800 text-lg font-bold mb-1">
+                    {item.title}
+                  </Text>
+                  <Text className="text-gray-500 text-sm font-medium leading-5">
+                    {item.description}
+                  </Text>
+                </View>
+                <Text className="text-gray-400 text-2xl ml-2">→</Text>
               </View>
-            </View>
-            <Text className="text-white text-2xl">→</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ backgroundColor: colors.primary }}
-            className="flex-row items-center justify-between p-5 rounded-2xl mb-4 shadow-sm active:opacity-80"
-            activeOpacity={0.8}
-            onPress={() => router.push('/prestador/agendamentos')}
-          >
-            <View className="flex-row items-center">
-              <Text className="text-3xl mr-4">📅</Text>
-              <View>
-                <Text className="text-white text-lg font-bold mb-1">
-                  Ver Agendamentos
-                </Text>
-                <Text className="text-white/80 text-sm">
-                  Visualizar e gerenciar horários
-                </Text>
-              </View>
-            </View>
-            <Text className="text-white text-2xl">→</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ backgroundColor: colors.primary }}
-            className="flex-row items-center justify-between p-5 rounded-2xl mb-4 shadow-sm active:opacity-80"
-            activeOpacity={0.8}
-            onPress={() => router.push('/prestador/relatorios')}
-          >
-            <View className="flex-row items-center">
-              <Text className="text-3xl mr-4">📊</Text>
-              <View>
-                <Text className="text-white text-lg font-bold mb-1">
-                  Relatórios
-                </Text>
-                <Text className="text-white/80 text-sm">
-                  Analytics e métricas detalhadas
-                </Text>
-              </View>
-            </View>
-            <Text className="text-white text-2xl">→</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={{ backgroundColor: colors.primary }}
-            className="flex-row items-center justify-between p-5 rounded-2xl shadow-sm active:opacity-80"
-            activeOpacity={0.8}
-            onPress={() => router.push('/prestador/configuracoes')}
-          >
-            <View className="flex-row items-center">
-              <Text className="text-3xl mr-4">⚙️</Text>
-              <View>
-                <Text className="text-white text-lg font-bold mb-1">
-                  Configurações
-                </Text>
-                <Text className="text-white/80 text-sm">
-                  Personalize cores e preferências
-                </Text>
-              </View>
-            </View>
-            <Text className="text-white text-2xl">→</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Card Informativo */}
-        <View style={{ backgroundColor: colors.light }} className="rounded-2xl p-6 mb-6">
+        {/* Info Card */}
+        <View 
+          style={{ backgroundColor: colors.light }} 
+          className="rounded-3xl p-6 mt-6 mb-8 border border-gray-100"
+        >
           <View className="flex-row items-start">
-            <Text className="text-3xl mr-3">💡</Text>
+            <View 
+              className="w-14 h-14 rounded-2xl items-center justify-center mr-4"
+              style={{ backgroundColor: colors.primary }}
+            >
+              <Text className="text-3xl">💡</Text>
+            </View>
             <View className="flex-1">
-              <Text className="text-gray-800 font-bold text-base mb-2">
+              <Text className="text-gray-800 font-bold text-base mb-3">
                 Dicas para Prestadores
               </Text>
-              <Text className="text-gray-600 text-sm leading-5">
-                • Mantenha seus serviços atualizados{'\n'}
-                • Responda aos agendamentos rapidamente{'\n'}
-                • Confirme os horários com antecedência
-              </Text>
+              <View className="space-y-2">
+                <Text className="text-gray-700 text-sm leading-6">
+                  ✓ Mantenha seus serviços atualizados
+                </Text>
+                <Text className="text-gray-700 text-sm leading-6">
+                  ✓ Responda aos agendamentos rapidamente
+                </Text>
+                <Text className="text-gray-700 text-sm leading-6">
+                  ✓ Confirme os horários com antecedência
+                </Text>
+              </View>
             </View>
           </View>
         </View>
 
-        <View className="h-6" />
+        <View className="h-8" />
       </ScrollView>
     </View>
   );
