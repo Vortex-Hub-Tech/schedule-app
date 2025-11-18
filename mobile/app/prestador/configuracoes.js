@@ -15,6 +15,9 @@ export default function Configuracoes() {
     enableNotifications: true,
     enableReminders: true,
     reminderHours: 24,
+    logoUrl: '',
+    accentColor: '#38bdf8',
+    backgroundStyle: 'gradient',
   });
   const [saving, setSaving] = useState(false);
 
@@ -33,6 +36,9 @@ export default function Configuracoes() {
         enableNotifications: savedTenant.settings.enableNotifications ?? true,
         enableReminders: savedTenant.settings.enableReminders ?? true,
         reminderHours: savedTenant.settings.reminderHours || 24,
+        logoUrl: savedTenant.settings.logoUrl || '',
+        accentColor: savedTenant.settings.accentColor || '#38bdf8',
+        backgroundStyle: savedTenant.settings.backgroundStyle || 'gradient',
       });
     }
   };
@@ -53,7 +59,7 @@ export default function Configuracoes() {
         settings: response.data.settings,
       };
       
-      await TenantStorage.saveTenant(updatedTenant);
+      await TenantStorage.setTenant(updatedTenant);
       setTenant(updatedTenant);
       
       Alert.alert('✅ Sucesso', 'Configurações salvas com sucesso!');
@@ -114,6 +120,29 @@ export default function Configuracoes() {
           </View>
         </View>
 
+        {/* Logo da Empresa */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-4">
+            🖼️ Logo da Empresa
+          </Text>
+          <Text className="text-gray-600 text-sm mb-3">
+            URL da imagem do seu logo (opcional)
+          </Text>
+          <TextInput
+            className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-base"
+            value={settings.logoUrl}
+            onChangeText={(text) => updateSetting('logoUrl', text)}
+            placeholder="https://exemplo.com/logo.png"
+            autoCapitalize="none"
+            keyboardType="url"
+          />
+          {settings.logoUrl ? (
+            <View className="mt-3 items-center">
+              <Text className="text-green-600 text-sm mb-2">✓ Logo configurado</Text>
+            </View>
+          ) : null}
+        </View>
+
         {/* Mensagem de Boas-vindas */}
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
           <Text className="text-xl font-bold text-gray-800 mb-4">
@@ -166,6 +195,94 @@ export default function Configuracoes() {
                     }}
                   >
                     {theme.name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Estilo de Fundo */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-4">
+            🌈 Estilo de Fundo
+          </Text>
+          <Text className="text-gray-600 text-sm mb-4">
+            Escolha o estilo de fundo do app
+          </Text>
+          <View className="flex-row gap-3">
+            {[
+              { value: 'gradient', name: 'Gradiente', emoji: '🌈' },
+              { value: 'solid', name: 'Sólido', emoji: '⬛' },
+              { value: 'pattern', name: 'Padrão', emoji: '🔲' },
+            ].map((style) => (
+              <TouchableOpacity
+                key={style.value}
+                onPress={() => updateSetting('backgroundStyle', style.value)}
+                className="flex-1"
+              >
+                <View
+                  style={{
+                    backgroundColor: settings.backgroundStyle === style.value ? colors.primary : '#f3f4f6',
+                    borderWidth: 2,
+                    borderColor: settings.backgroundStyle === style.value ? colors.primary : '#e5e7eb',
+                  }}
+                  className="p-4 rounded-2xl items-center"
+                >
+                  <Text className="text-2xl mb-1">{style.emoji}</Text>
+                  <Text
+                    className="font-semibold text-sm text-center"
+                    style={{
+                      color: settings.backgroundStyle === style.value ? '#fff' : '#374151',
+                    }}
+                  >
+                    {style.name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Cor de Destaque */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-4">
+            ✨ Cor de Destaque Secundária
+          </Text>
+          <Text className="text-gray-600 text-sm mb-4">
+            Cor complementar para botões e destaques
+          </Text>
+          <View className="flex-row flex-wrap gap-3">
+            {[
+              { color: '#38bdf8', name: 'Azul Claro', emoji: '💠' },
+              { color: '#f472b6', name: 'Rosa Claro', emoji: '🌸' },
+              { color: '#60a5fa', name: 'Azul Médio', emoji: '💎' },
+              { color: '#fb923c', name: 'Laranja Claro', emoji: '🔶' },
+              { color: '#34d399', name: 'Verde Claro', emoji: '💚' },
+              { color: '#a78bfa', name: 'Roxo Claro', emoji: '💜' },
+            ].map((accent) => (
+              <TouchableOpacity
+                key={accent.color}
+                onPress={() => updateSetting('accentColor', accent.color)}
+                className="flex-1"
+                style={{ minWidth: '30%' }}
+              >
+                <View
+                  style={{
+                    backgroundColor: settings.accentColor === accent.color ? accent.color : '#f3f4f6',
+                    borderWidth: 3,
+                    borderColor: settings.accentColor === accent.color ? accent.color : 'transparent',
+                  }}
+                  className="p-3 rounded-2xl items-center shadow-sm"
+                >
+                  <Text className="text-2xl mb-1">{accent.emoji}</Text>
+                  <Text
+                    className="font-bold text-xs text-center"
+                    style={{
+                      color: settings.accentColor === accent.color ? '#fff' : '#374151',
+                    }}
+                  >
+                    {accent.name}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -272,12 +389,23 @@ export default function Configuracoes() {
         <TouchableOpacity
           onPress={saveSettings}
           disabled={saving}
-          style={{ backgroundColor: colors.primary }}
+          style={{ 
+            backgroundColor: saving ? '#9ca3af' : colors.primary,
+            opacity: saving ? 0.7 : 1 
+          }}
           className="rounded-2xl p-5 mb-8 shadow-lg"
+          activeOpacity={0.8}
         >
-          <Text className="text-white text-center text-lg font-bold">
-            {saving ? '⏳ Salvando...' : '💾 Salvar Configurações'}
-          </Text>
+          <View className="flex-row items-center justify-center">
+            <Text className="text-white text-center text-lg font-bold">
+              {saving ? '⏳ Salvando Configurações...' : '💾 Salvar Todas as Configurações'}
+            </Text>
+          </View>
+          {!saving && (
+            <Text className="text-white/80 text-center text-sm mt-2">
+              As alterações serão aplicadas imediatamente
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View className="h-4" />
