@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendaFácil - Sistema de Agendamento Inteligente</title>
+    <meta name="description" content="Simplifique seus agendamentos com nossa plataforma SaaS. Perfeito para prestadores de serviços, clínicas e salões.">
+    <link rel="stylesheet" href="/landing/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="#6366F1"/>
+                        <path d="M10 8H22V10H10V8Z" fill="white"/>
+                        <path d="M10 14H18V16H10V14Z" fill="white"/>
+                        <path d="M10 20H22V22H10V20Z" fill="white"/>
+                        <circle cx="8" cy="9" r="1" fill="white"/>
+                        <circle cx="8" cy="15" r="1" fill="white"/>
+                        <circle cx="8" cy="21" r="1" fill="white"/>
+                    </svg>
+                    <span>AgendaFácil</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#features">Recursos</a></li>
+                    <li><a href="#pricing">Planos</a></li>
+                    <li><a href="#customize">Personalizar</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="#pricing" class="btn btn-secondary">Começar Grátis</a>
+                </div>
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span>🚀 Novo</span>
+                        Sistema 100% Personalizável
+                    </div>
+                    <h1 class="hero-title">
+                        Transforme a forma como você
+                        <span class="gradient-text">gerencia agendamentos</span>
+                    </h1>
+                    <p class="hero-description">
+                        Plataforma completa para prestadores de serviços. Agende, gerencie e cresça seu negócio com inteligência artificial e automação.
+                    </p>
+                    <div class="hero-cta">
+                        <a href="#pricing" class="btn btn-primary btn-large">
+                            Começar Agora Grátis
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="#demo" class="btn btn-outline btn-large">
+                            Ver Demonstração
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <strong>10.000+</strong>
+                            <span>Agendamentos</span>
+                        </div>
+                        <div class="stat">
+                            <strong>500+</strong>
+                            <span>Empresas</span>
+                        </div>
+                        <div class="stat">
+                            <strong>98%</strong>
+                            <span>Satisfação</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="phone-mockup">
+                        <div class="phone-frame">
+                            <div class="phone-notch"></div>
+                            <div class="phone-screen">
+                                <div class="app-preview">
+                                    <div class="app-header">
+                                        <div class="avatar"></div>
+                                        <div class="app-title">Meus Agendamentos</div>
+                                    </div>
+                                    <div class="app-card">
+                                        <div class="card-icon">📅</div>
+                                        <div class="card-info">
+                                            <div class="card-title">Corte de Cabelo</div>
+                                            <div class="card-time">Hoje, 14:00</div>
+                                        </div>
+                                        <div class="card-status">Confirmado</div>
+                                    </div>
+                                    <div class="app-card">
+                                        <div class="card-icon">💇</div>
+                                        <div class="card-info">
+                                            <div class="card-title">Manicure</div>
+                                            <div class="card-time">Amanhã, 10:30</div>
+                                        </div>
+                                        <div class="card-status pending">Pendente</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="floating-card card-1">
+                            <div class="mini-icon">✅</div>
+                            <div class="mini-text">
+                                <strong>+15 agendamentos</strong>
+                                <span>esta semana</span>
+                            </div>
+                        </div>
+                        <div class="floating-card card-2">
+                            <div class="mini-icon">📊</div>
+                            <div class="mini-text">
+                                <strong>R$ 2.450</strong>
+                                <span>faturamento</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <div class="container">
+            <p class="trust-text">Confiado por profissionais de todo Brasil</p>
+            <div class="logos">
+                <div class="logo-item">Salões Premium</div>
+                <div class="logo-item">Clínicas Médicas</div>
+                <div class="logo-item">Consultórios</div>
+                <div class="logo-item">Spas & Estética</div>
+                <div class="logo-item">Personal Trainers</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Tudo que você precisa em um só lugar</h2>
+                <p class="section-description">Recursos poderosos para transformar seu negócio</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>App Mobile Completo</h3>
+                    <p>Aplicativo nativo para iOS e Android. Seus clientes podem agendar de qualquer lugar.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Notificações Inteligentes</h3>
+                    <p>SMS e push automáticos para lembrar clientes e reduzir faltas em até 80%.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3>Pagamentos Integrados</h3>
+                    <p>Aceite pagamentos online com PIX, cartão e boleto direto na plataforma.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Relatórios Detalhados</h3>
+                    <p>Acompanhe seu faturamento, clientes mais frequentes e horários de pico.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>100% Personalizável</h3>
+                    <p>Cores, logo e marca da sua empresa. O app tem a cara do seu negócio.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Segurança Total</h3>
+                    <p>Dados criptografados e conformidade com LGPD. Seus dados estão protegidos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Planos que cabem no seu bolso</h2>
+                <p class="section-description">Comece grátis e escale conforme cresce</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">0</span>
+                        <span class="period">/mês</span>
+                    </div>
+                    <p class="plan-description">Perfeito para começar</p>
+                    <ul class="plan-features">
+                        <li>✅ Até 50 agendamentos/mês</li>
+                        <li>✅ 1 prestador de serviço</li>
+                        <li>✅ App mobile básico</li>
+                        <li>✅ Suporte por email</li>
+                        <li>❌ Notificações SMS</li>
+                        <li>❌ Pagamentos online</li>
+                    </ul>
+                    <button class="btn btn-outline btn-full" onclick="selectPlan('starter', 0)">
+                        Começar Grátis
+                    </button>
+                </div>
+
+                <div class="pricing-card featured">
+                    <div class="popular-badge">Mais Popular</div>
+                    <div class="plan-name">Professional</div>
+                    <div class="plan-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">97</span>
+                        <span class="period">/mês</span>
+                    </div>
+                    <p class="plan-description">Para negócios em crescimento</p>
+                    <ul class="plan-features">
+                        <li>✅ Agendamentos ilimitados</li>
+                        <li>✅ Até 3 prestadores</li>
+                        <li>✅ App mobile completo</li>
+                        <li>✅ Notificações SMS</li>
+                        <li>✅ Pagamentos online</li>
+                        <li>✅ Relatórios avançados</li>
+                        <li>✅ Suporte prioritário</li>
+                    </ul>
+                    <button class="btn btn-primary btn-full" onclick="selectPlan('professional', 97)">
+                        Assinar Agora
+                    </button>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price">
+                        <span class="currency">R$</span>
+                        <span class="amount">297</span>
+                        <span class="period">/mês</span>
+                    </div>
+                    <p class="plan-description">Para empresas estabelecidas</p>
+                    <ul class="plan-features">
+                        <li>✅ Tudo do Professional</li>
+                        <li>✅ Prestadores ilimitados</li>
+                        <li>✅ Multi-unidades</li>
+                        <li>✅ API personalizada</li>
+                        <li>✅ Integrações customizadas</li>
+                        <li>✅ Gerente de sucesso dedicado</li>
+                        <li>✅ SLA garantido</li>
+                    </ul>
+                    <button class="btn btn-outline btn-full" onclick="selectPlan('enterprise', 297)">
+                        Falar com Vendas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customization Form -->
+    <section id="customize" class="customize">
+        <div class="container">
+            <div class="customize-content">
+                <div class="customize-info">
+                    <h2 class="section-title">Precisa de algo específico?</h2>
+                    <p class="section-description">Criamos soluções sob medida para o seu negócio. Conte-nos suas necessidades e nossa equipe entrará em contato.</p>
+                    <div class="benefits-list">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">🎯</div>
+                            <div>
+                                <strong>Personalização Total</strong>
+                                <p>Adaptamos o sistema às suas necessidades específicas</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">⚡</div>
+                            <div>
+                                <strong>Implementação Rápida</strong>
+                                <p>Seu sistema personalizado em até 15 dias</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">💬</div>
+                            <div>
+                                <strong>Suporte Dedicado</strong>
+                                <p>Equipe exclusiva para seu projeto</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="customize-form">
+                    <form id="customizeForm">
+                        <div class="form-group">
+                            <label for="name">Nome Completo *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Telefone *</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="company">Empresa</label>
+                            <input type="text" id="company" name="company">
+                        </div>
+                        <div class="form-group">
+                            <label for="business_type">Tipo de Negócio *</label>
+                            <select id="business_type" name="business_type" required>
+                                <option value="">Selecione...</option>
+                                <option value="salon">Salão de Beleza</option>
+                                <option value="clinic">Clínica Médica</option>
+                                <option value="spa">Spa/Estética</option>
+                                <option value="gym">Academia/Personal</option>
+                                <option value="consultant">Consultoria</option>
+                                <option value="other">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="requirements">O que você precisa? *</label>
+                            <textarea id="requirements" name="requirements" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            Solicitar Orçamento
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">O que nossos clientes dizem</h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Aumentei meus agendamentos em 40% no primeiro mês. O app é intuitivo e meus clientes adoraram!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">MC</div>
+                        <div>
+                            <strong>Maria Costa</strong>
+                            <span>Studio de Beleza Premium</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Reduzi faltas em 70% com as notificações automáticas. Meu faturamento nunca foi tão alto!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">JS</div>
+                        <div>
+                            <strong>João Silva</strong>
+                            <span>Clínica Odontológica</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Sistema profissional e fácil de usar. A personalização deixou com a cara da minha marca!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">AP</div>
+                        <div>
+                            <strong>Ana Paula</strong>
+                            <span>Spa Harmonia</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Pronto para transformar seu negócio?</h2>
+                <p>Junte-se a centenas de empresas que já aumentaram seus resultados</p>
+                <a href="#pricing" class="btn btn-white btn-large">
+                    Começar Agora - É Grátis
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="32" height="32" rx="8" fill="#6366F1"/>
+                            <path d="M10 8H22V10H10V8Z" fill="white"/>
+                            <path d="M10 14H18V16H10V14Z" fill="white"/>
+                            <path d="M10 20H22V22H10V20Z" fill="white"/>
+                            <circle cx="8" cy="9" r="1" fill="white"/>
+                            <circle cx="8" cy="15" r="1" fill="white"/>
+                            <circle cx="8" cy="21" r="1" fill="white"/>
+                        </svg>
+                        <span>AgendaFácil</span>
+                    </div>
+                    <p>Simplifique seus agendamentos e cresça seu negócio.</p>
+                </div>
+                <div class="footer-column">
+                    <h4>Produto</h4>
+                    <ul>
+                        <li><a href="#features">Recursos</a></li>
+                        <li><a href="#pricing">Planos</a></li>
+                        <li><a href="#demo">Demonstração</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Empresa</h4>
+                    <ul>
+                        <li><a href="#about">Sobre</a></li>
+                        <li><a href="#contact">Contato</a></li>
+                        <li><a href="#careers">Carreiras</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Suporte</h4>
+                    <ul>
+                        <li><a href="#help">Central de Ajuda</a></li>
+                        <li><a href="#privacy">Privacidade</a></li>
+                        <li><a href="#terms">Termos de Uso</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AgendaFácil. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Finalizar Assinatura</h2>
+            <div id="payment-element"></div>
+            <button id="submit-payment" class="btn btn-primary btn-full">
+                Confirmar Pagamento
+            </button>
+            <div id="payment-message" class="payment-message"></div>
+        </div>
+    </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="/landing/script.js"></script>
+</body>
+</html>

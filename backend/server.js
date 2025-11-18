@@ -7,7 +7,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
+
+const { handleStripeWebhook } = require('./routes/landing');
+app.post('/api/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
 app.use(express.json());
+app.use('/landing', express.static('public/landing'));
+app.use(express.static('public'));
 
 // Testar conexão com o banco
 pool.query('SELECT NOW()', (err, res) => {
@@ -46,6 +52,7 @@ const appointmentsRoutes = require('./routes/appointments');
 const validationRoutes = require('./routes/validation');
 const ownerRoutes = require('./routes/owner');
 const smsLogsRoutes = require('./routes/sms-logs');
+const landingRoutesModule = require('./routes/landing');
 
 app.use('/api/tenants', tenantsRoutes);
 app.use('/api/services', servicesRoutes);
@@ -53,6 +60,11 @@ app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/validation', validationRoutes);
 app.use('/api/owner', ownerRoutes);
 app.use('/api/sms-logs', smsLogsRoutes);
+app.use('/api', landingRoutesModule);
+
+app.get('/', (req, res) => {
+  res.redirect('/landing/index.html');
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
