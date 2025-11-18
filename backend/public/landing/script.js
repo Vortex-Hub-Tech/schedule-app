@@ -169,12 +169,13 @@ async function handlePaymentSubmit(e) {
     submitButton.textContent = 'Processando...';
 
     try {
-        const response = await fetch('/api/create-subscription', {
+        const response = await fetch('/api/create-payment', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                amount: selectedAmount,
                 plan: selectedPlan,
                 customer: {
                     name,
@@ -197,15 +198,15 @@ async function handlePaymentSubmit(e) {
             setTimeout(() => {
                 window.location.href = '/success.html';
             }, 2000);
-        } else if (result.invoiceUrl) {
-            window.location.href = result.invoiceUrl;
-        } else if (result.pixCopyPaste) {
+        } else if (result.pixCopyPaste && result.pixQrCode) {
             showPixPayment(result.pixCopyPaste, result.pixQrCode);
         } else if (result.bankSlipUrl) {
             window.open(result.bankSlipUrl, '_blank');
             showPaymentMessage('Boleto gerado! Verifique a nova aba.', 'success');
+        } else if (result.invoiceUrl) {
+            window.location.href = result.invoiceUrl;
         } else {
-            showPaymentMessage('Assinatura criada com sucesso!', 'success');
+            showPaymentMessage('Pagamento criado com sucesso!', 'success');
             setTimeout(() => {
                 window.location.href = '/success.html';
             }, 2000);

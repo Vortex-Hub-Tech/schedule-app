@@ -2,7 +2,7 @@
 
 ## 🎉 Landing Page Criada com Sucesso!
 
-Foi criada uma Landing Page moderna e profissional para divulgação e venda do seu app de agendamento.
+Foi criada uma Landing Page moderna e profissional para divulgação e venda do seu app de agendamento, com **integração Asaas** para pagamentos brasileiros (PIX, Boleto e Cartão de Crédito).
 
 ## 📍 Acesso
 
@@ -54,39 +54,90 @@ A Landing Page está disponível em:
 - Links para recursos, empresa e suporte
 - Logo e descrição
 
-## 💳 Sistema de Pagamento (Stripe)
+## 💳 Sistema de Pagamento (Asaas) 🇧🇷
+
+### Por que Asaas?
+
+✅ **Gateway 100% brasileiro**  
+✅ **Aceita PIX, Boleto e Cartão de Crédito**  
+✅ **Taxas competitivas**  
+✅ **API simples e bem documentada**  
+✅ **Webhooks nativos**  
 
 ### Configuração Necessária
 
 Para ativar os pagamentos, você precisa configurar as seguintes variáveis de ambiente:
 
-#### No Replit (Secrets):
+#### 1. Criar Conta no Asaas
 
-1. **STRIPE_SECRET_KEY**
-   - Acesse: https://dashboard.stripe.com/apikeys
-   - Copie a "Secret key" (começa com `sk_`)
-   - Cole no Replit Secrets como `STRIPE_SECRET_KEY`
+1. **Produção**: https://www.asaas.com
+2. **Sandbox (Testes)**: https://sandbox.asaas.com/onboarding/createAccount
 
-2. **VITE_STRIPE_PUBLIC_KEY** (ou **STRIPE_PUBLIC_KEY**)
-   - Na mesma página do Stripe
-   - Copie a "Publishable key" (começa com `pk_`)
-   - Cole no Replit Secrets
+#### 2. Obter API Key
 
-3. **STRIPE_WEBHOOK_SECRET** (para produção)
-   - Acesse: https://dashboard.stripe.com/webhooks
-   - Crie um webhook endpoint apontando para: `https://seu-dominio/api/webhook`
-   - Copie o "Signing secret" (começa com `whsec_`)
-   - Cole no Replit Secrets como `STRIPE_WEBHOOK_SECRET`
+1. Faça login na sua conta Asaas
+2. Vá em **Menu do Usuário → Integrações → API Key**
+3. Clique em **Gerar Nova Chave API**
+4. Copie a chave gerada
+
+#### 3. Configurar no Replit (Secrets)
+
+Adicione as seguintes secrets:
+
+1. **ASAAS_API_KEY**
+   - Cole a API Key que você copiou
+   - Exemplo: `$aact_YTU5YTE0M2M2N2I4MTliNzk0YTI5N2U5MzdjNWZmNDQ6OjAwMDAwMDAwMDAwMDAwNDU5MTU6OiRhYWNoXzg2MWFhMmQ1LTA4OGEtNGIxZS04MTgyLWZkODE2ZmQ0M2VlYQ==`
+
+2. **ASAAS_SANDBOX** (opcional)
+   - Valor: `true` para testes, `false` ou deixe vazio para produção
+   - Recomendo começar com `true` para testar
+
+3. **ASAAS_WEBHOOK_TOKEN** (recomendado)
+   - Crie um token secreto qualquer (ex: `meu_token_super_secreto_123`)
+   - Usado para validar webhooks do Asaas
+
+### Configurar Webhooks no Asaas
+
+1. Acesse **Menu do Usuário → Integrações → Webhooks**
+2. Clique em **Novo Webhook**
+3. Preencha:
+   - **Nome**: `AgendaFácil Webhooks`
+   - **URL**: `https://seu-dominio.replit.app/api/webhook/asaas`
+   - **Token de Autenticação**: o mesmo valor de `ASAAS_WEBHOOK_TOKEN`
+   - **Eventos**:
+     - ✅ PAYMENT_CREATED
+     - ✅ PAYMENT_RECEIVED
+     - ✅ PAYMENT_CONFIRMED
+     - ✅ PAYMENT_OVERDUE
+     - ✅ PAYMENT_DELETED
+     - ✅ PAYMENT_REFUNDED
 
 ### Fluxo de Pagamento
 
-1. Usuário clica em "Assinar Agora" no plano Professional ou Enterprise
-2. Modal de pagamento se abre com Stripe Elements
-3. Usuário preenche dados do cartão
-4. Stripe processa o pagamento
-5. Webhook confirma o pagamento
-6. Status da assinatura muda para "active" no banco
-7. Usuário é redirecionado para `/success.html`
+#### Opção 1: PIX (Instantâneo)
+1. Usuário clica em "Assinar Agora"
+2. Preenche dados (nome, email, CPF/CNPJ, telefone)
+3. Seleciona "PIX"
+4. Sistema gera QR Code e código Copia e Cola
+5. Usuário paga via app do banco
+6. Webhook confirma pagamento automaticamente
+7. Status muda para "active"
+
+#### Opção 2: Boleto
+1. Usuário clica em "Assinar Agora"
+2. Preenche dados
+3. Seleciona "Boleto"
+4. Sistema gera boleto
+5. Usuário paga no banco
+6. Webhook confirma em 1-3 dias úteis
+
+#### Opção 3: Cartão de Crédito
+1. Usuário clica em "Assinar Agora"
+2. Preenche dados
+3. Seleciona "Cartão de Crédito"
+4. Sistema gera link de pagamento Asaas
+5. Usuário preenche dados do cartão
+6. Confirmação instantânea
 
 ## 🗄️ Banco de Dados
 
@@ -111,8 +162,10 @@ Para ativar os pagamentos, você precisa configurar as seguintes variáveis de a
 - id (serial)
 - plan (varchar) - starter/professional/enterprise
 - amount (decimal)
-- status (varchar) - pending/active/cancelled
-- payment_intent_id (varchar)
+- status (varchar) - pending/active/overdue/cancelled
+- asaas_customer_id (varchar) - ID do cliente no Asaas
+- asaas_charge_id (varchar) - ID da cobrança no Asaas
+- asaas_subscription_id (varchar) - ID da assinatura no Asaas
 - created_at (timestamp)
 - updated_at (timestamp)
 ```
@@ -127,7 +180,7 @@ Para ativar os pagamentos, você precisa configurar as seguintes variáveis de a
   - Gradientes modernos
   - Responsivo (mobile-first)
 - **JavaScript Vanilla**
-- **Stripe Elements** para pagamentos
+- **Asaas API** para pagamentos
 
 ### Paleta de Cores
 - Primary: `#6366F1` (Indigo)
@@ -152,26 +205,36 @@ A LP é totalmente responsiva e funciona perfeitamente em:
 
 - CORS configurado
 - Validação de dados no backend
-- Stripe Elements para PCI compliance
-- Webhook com assinatura verificada
+- Webhook com token de autenticação
+- API Keys armazenadas em secrets
 - HTTPS recomendado para produção
 
-## 🚀 Próximos Passos
+## 💰 Taxas do Asaas (Referência)
 
-1. ✅ **Configurar Stripe Secrets** (ver seção acima)
-2. 📧 **Configurar Email Marketing** (opcional)
-   - Integrar com Mailchimp/SendGrid
-   - Enviar email de boas-vindas
-3. 📊 **Analytics** (opcional)
-   - Google Analytics
-   - Hotjar para heatmaps
-4. 🎯 **SEO** (opcional)
-   - Meta tags otimizadas
-   - Schema.org markup
-   - Sitemap.xml
-5. 🌐 **Deploy**
-   - Publicar no Replit
-   - Configurar domínio customizado
+| Método | Taxa |
+|--------|------|
+| **PIX** | 0,99% |
+| **Boleto** | R$ 3,49 por boleto |
+| **Cartão de Crédito** | 4,49% |
+| **Assinatura Mensal** | Sem taxa adicional |
+
+*Taxas podem variar. Consulte o Asaas para valores atualizados.*
+
+## 🚀 Testando a Integração
+
+### Modo Sandbox (Teste)
+
+1. Configure `ASAAS_SANDBOX=true` nos Secrets
+2. Use a API Key do sandbox
+3. Faça testes sem cobranças reais
+4. Use CPFs/CNPJs de teste
+
+### Modo Produção
+
+1. Configure `ASAAS_SANDBOX=false` ou remova a variável
+2. Use a API Key de produção
+3. Configure webhook de produção
+4. Pagamentos reais serão processados
 
 ## 📂 Estrutura de Arquivos
 
@@ -184,20 +247,31 @@ backend/
 │   │   └── script.js       # JavaScript da LP
 │   └── success.html        # Página de sucesso pós-pagamento
 ├── routes/
-│   └── landing.js          # Rotas da LP e pagamento
+│   └── landing.js          # Rotas da LP e pagamento Asaas
+├── services/
+│   └── asaas.js            # Serviço de integração Asaas
 └── server.js               # Servidor configurado
 ```
+
+## 📋 Checklist de Deploy
+
+- [ ] Criar conta no Asaas (produção)
+- [ ] Gerar API Key de produção
+- [ ] Configurar `ASAAS_API_KEY` nos Secrets
+- [ ] Configurar `ASAAS_SANDBOX=false`
+- [ ] Configurar `ASAAS_WEBHOOK_TOKEN`
+- [ ] Criar webhook no Asaas apontando para sua URL
+- [ ] Testar pagamento PIX
+- [ ] Testar pagamento Boleto
+- [ ] Testar pagamento Cartão
+- [ ] Verificar recebimento de webhooks
+- [ ] Publicar no Replit
 
 ## 🎯 Métricas de Conversão Esperadas
 
 Baseado em benchmarks do mercado:
 - Landing pages SaaS de alta qualidade: **10-15%** de conversão
 - Landing pages médias: **2-5%** de conversão
-
-Esta LP foi desenvolvida seguindo as melhores práticas de:
-- Calendly
-- Acuity Scheduling
-- Outros líderes do mercado
 
 ## 💡 Dicas para Aumentar Conversão
 
@@ -207,7 +281,50 @@ Esta LP foi desenvolvida seguindo as melhores práticas de:
 4. **Provas sociais reais** (quando tiver clientes)
 5. **Garantia de satisfação** ou período de teste
 6. **Casos de uso** específicos por segmento
+7. **Ofereça PIX** - brasileiros adoram! ⚡
 
-## 📞 Suporte
+## 📞 API Endpoints
 
-Se tiver dúvidas ou precisar de ajustes, é só me avisar!
+### Landing Page
+- `GET /` - Redireciona para Landing Page
+- `GET /landing/index.html` - Landing Page principal
+- `GET /success.html` - Página de sucesso
+
+### Customização
+- `POST /api/customization-request` - Salva solicitação de customização
+
+### Pagamentos
+- `POST /api/create-subscription` - Cria assinatura no Asaas
+- `POST /api/webhook/asaas` - Recebe eventos do Asaas
+
+## 🆘 Troubleshooting
+
+### Problema: "Asaas não configurado"
+**Solução**: Configure a variável `ASAAS_API_KEY` nos Secrets do Replit
+
+### Problema: Webhook não funciona
+**Solução**: 
+1. Verifique se `ASAAS_WEBHOOK_TOKEN` está configurado
+2. Confirme se a URL do webhook está correta
+3. Veja os logs no painel Asaas → Webhooks
+
+### Problema: Pagamento não confirma
+**Solução**: 
+1. Verifique os logs do webhook
+2. Teste em modo sandbox primeiro
+3. Confirme que os eventos estão selecionados no Asaas
+
+## 📖 Recursos Úteis
+
+- **Documentação Asaas**: https://docs.asaas.com/
+- **API Reference**: https://asaasv3.docs.apiary.io/
+- **Sandbox Asaas**: https://sandbox.asaas.com/
+- **NPM Package**: https://www.npmjs.com/package/asaas
+
+---
+
+## 🎊 Pronto para Vender!
+
+A Landing Page está 100% funcional com integração Asaas! Configure as API Keys e comece a receber pagamentos via PIX, Boleto e Cartão de Crédito.
+
+**Dica**: Comece no modo sandbox para testar tudo antes de ir para produção! 🚀

@@ -38,11 +38,13 @@ router.post('/customization-request', async (req, res) => {
 });
 
 router.post('/create-payment', async (req, res) => {
-    const { amount, plan, customer } = req.body;
+    const { amount, plan, customer, paymentMethod } = req.body;
 
     if (!amount || !plan) {
         return res.status(400).json({ error: 'Dados inválidos' });
     }
+
+    const billingType = paymentMethod || 'CREDIT_CARD';
 
     if (!asaasService.isConfigured()) {
         console.log('Asaas não configurado. Modo de demonstração.');
@@ -69,7 +71,7 @@ router.post('/create-payment', async (req, res) => {
 
         const today = new Date();
         const dueDate = new Date(today);
-        dueDate.setDate(today.getDate() + 7);
+        dueDate.setDate(today.getDate() + (billingType === 'BOLETO' ? 3 : 1));
         const dueDateStr = dueDate.toISOString().split('T')[0];
 
         const planDescriptions = {
@@ -83,7 +85,7 @@ router.post('/create-payment', async (req, res) => {
             value: amount,
             description: planDescriptions[plan] || 'Assinatura AgendaFácil',
             dueDate: dueDateStr,
-            billingType: 'CREDIT_CARD'
+            billingType: billingType
         });
 
         const subscriptionQuery = `
@@ -95,13 +97,18 @@ router.post('/create-payment', async (req, res) => {
 
         await pool.query(subscriptionQuery, [plan, amount, charge.id, customerId]);
 
-        res.json({
+        const response = {
             chargeId: charge.id,
-            invoiceUrl: charge.invoiceUrl,
-            bankSlipUrl: charge.bankSlipUrl,
-            pixQrCode: charge.pixQrCode?.payload,
-            pixCopyPaste: charge.pixQrCode?.encodedImage
-        });
+            invoiceUrl: charge.invoiceUrl || null,
+            bankSlipUrl: charge.bankSlipUrl || null
+        };
+
+        if (billingType === 'PIX' && charge.pixQrCode) {
+            response.pixQrCode = charge.pixQrCode.encodedImage || null;
+            response.pixCopyPaste = charge.pixQrCode.payload || null;
+        }
+
+        res.json(response);
 
     } catch (error) {
         console.error('Erro ao criar cobrança Asaas:', error);
@@ -196,41 +203,49 @@ const handleAsaasWebhook = async (req, res) => {
         const event = body.event;
         const payment = body.payment;
 
+        const paymentId = payment?.id || body?.payment;
+
         switch (event) {
             case 'PAYMENT_CREATED':
-                console.log('Pagamento criado:', payment.id);
+                console.log('Pagamento criado:', paymentId);
                 break;
 
             case 'PAYMENT_RECEIVED':
             case 'PAYMENT_CONFIRMED':
-                console.log('Pagamento confirmado:', payment.id);
-                await pool.query(
-                    `UPDATE subscriptions 
-                     SET status = 'active', updated_at = NOW() 
-                     WHERE asaas_charge_id = $1 OR asaas_subscription_id = $1`,
-                    [payment.id]
-                );
+                console.log('Pagamento confirmado:', paymentId);
+                if (paymentId) {
+                    await pool.query(
+                        `UPDATE subscriptions 
+                         SET status = 'active', updated_at = NOW() 
+                         WHERE asaas_charge_id = $1`,
+                        [paymentId]
+                    );
+                }
                 break;
 
             case 'PAYMENT_OVERDUE':
-                console.log('Pagamento vencido:', payment.id);
-                await pool.query(
-                    `UPDATE subscriptions 
-                     SET status = 'overdue', updated_at = NOW() 
-                     WHERE asaas_charge_id = $1 OR asaas_subscription_id = $1`,
-                    [payment.id]
-                );
+                console.log('Pagamento vencido:', paymentId);
+                if (paymentId) {
+                    await pool.query(
+                        `UPDATE subscriptions 
+                         SET status = 'overdue', updated_at = NOW() 
+                         WHERE asaas_charge_id = $1`,
+                        [paymentId]
+                    );
+                }
                 break;
 
             case 'PAYMENT_DELETED':
             case 'PAYMENT_REFUNDED':
-                console.log('Pagamento cancelado/reembolsado:', payment.id);
-                await pool.query(
-                    `UPDATE subscriptions 
-                     SET status = 'cancelled', updated_at = NOW() 
-                     WHERE asaas_charge_id = $1 OR asaas_subscription_id = $1`,
-                    [payment.id]
-                );
+                console.log('Pagamento cancelado/reembolsado:', paymentId);
+                if (paymentId) {
+                    await pool.query(
+                        `UPDATE subscriptions 
+                         SET status = 'cancelled', updated_at = NOW() 
+                         WHERE asaas_charge_id = $1`,
+                        [paymentId]
+                    );
+                }
                 break;
 
             default:

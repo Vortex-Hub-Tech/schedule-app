@@ -53,6 +53,15 @@ async function createCharge({ customer, value, description, dueDate, billingType
             dueDate
         });
 
+        if (billingType === 'PIX' && charge.id) {
+            try {
+                const pixData = await asaas.payments.getPixQrCode(charge.id);
+                charge.pixQrCode = pixData;
+            } catch (pixError) {
+                console.error('Erro ao obter QR Code PIX:', pixError);
+            }
+        }
+
         return charge;
     } catch (error) {
         console.error('Erro ao criar cobrança Asaas:', error);
