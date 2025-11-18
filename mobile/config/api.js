@@ -77,4 +77,8 @@ export default {
     verifyOwner: (tenantId, deviceId) => axios.post(`${API_URL}/owner/verify-owner`, { tenantId, deviceId }),
     claimOwnership: (tenantId, deviceId) => axios.post(`${API_URL}/owner/claim-ownership`, { tenantId, deviceId }),
   },
+  analytics: {
+    getDashboard: () => api.get('/analytics/dashboard'),
+    getConversion: () => api.get('/analytics/conversion'),
+  },
 };

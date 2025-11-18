@@ -24,7 +24,7 @@ export default function Relatorios() {
 
   const loadAnalytics = async () => {
     try {
-      const response = await apiClient.get('/analytics/dashboard');
+      const response = await apiClient.analytics.getDashboard();
       setAnalytics(response.data);
     } catch (error) {
       console.error('Erro ao carregar analytics:', error);
