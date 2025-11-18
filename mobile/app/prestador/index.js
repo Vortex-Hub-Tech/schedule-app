@@ -61,7 +61,7 @@ export default function PrestadorHome() {
           <View className="bg-white/20 w-16 h-16 rounded-full items-center justify-center">
             <Text className="text-white text-3xl">💼</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             className="bg-white/20 px-4 py-2 rounded-full"
             onPress={handleLogout}
           >
@@ -78,33 +78,86 @@ export default function PrestadorHome() {
 
       <ScrollView className="flex-1 px-6 -mt-4">
         {/* Cards de Menu */}
-        <View className="mt-4">
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              className="bg-white rounded-2xl p-6 mb-4 shadow-sm active:opacity-70"
-              activeOpacity={0.8}
-              onPress={() => router.push(item.route)}
-            >
-              <View className="flex-row items-center">
-                <View 
-                  style={{ backgroundColor: item.color }} 
-                  className="w-16 h-16 rounded-2xl items-center justify-center"
-                >
-                  <Text className="text-white text-3xl">{item.icon}</Text>
-                </View>
-                <View className="flex-1 ml-4">
-                  <Text className="text-xl font-bold text-gray-800 mb-1">
-                    {item.title}
-                  </Text>
-                  <Text className="text-gray-600 text-sm">
-                    {item.description}
-                  </Text>
-                </View>
-                <Text className="text-gray-300 text-2xl">›</Text>
+        <View className="px-6">
+          <TouchableOpacity
+            style={{ backgroundColor: colors.primary }}
+            className="flex-row items-center justify-between p-5 rounded-2xl mb-4 shadow-sm active:opacity-80"
+            activeOpacity={0.8}
+            onPress={() => router.push('/prestador/servicos')}
+          >
+            <View className="flex-row items-center">
+              <Text className="text-3xl mr-4">📋</Text>
+              <View>
+                <Text className="text-white text-lg font-bold mb-1">
+                  Gerenciar Serviços
+                </Text>
+                <Text className="text-white/80 text-sm">
+                  Adicionar, editar e remover serviços
+                </Text>
               </View>
-            </TouchableOpacity>
-          ))}
+            </View>
+            <Text className="text-white text-2xl">→</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ backgroundColor: colors.primary }}
+            className="flex-row items-center justify-between p-5 rounded-2xl mb-4 shadow-sm active:opacity-80"
+            activeOpacity={0.8}
+            onPress={() => router.push('/prestador/agendamentos')}
+          >
+            <View className="flex-row items-center">
+              <Text className="text-3xl mr-4">📅</Text>
+              <View>
+                <Text className="text-white text-lg font-bold mb-1">
+                  Ver Agendamentos
+                </Text>
+                <Text className="text-white/80 text-sm">
+                  Visualizar e gerenciar horários
+                </Text>
+              </View>
+            </View>
+            <Text className="text-white text-2xl">→</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ backgroundColor: colors.primary }}
+            className="flex-row items-center justify-between p-5 rounded-2xl mb-4 shadow-sm active:opacity-80"
+            activeOpacity={0.8}
+            onPress={() => router.push('/prestador/relatorios')}
+          >
+            <View className="flex-row items-center">
+              <Text className="text-3xl mr-4">📊</Text>
+              <View>
+                <Text className="text-white text-lg font-bold mb-1">
+                  Relatórios
+                </Text>
+                <Text className="text-white/80 text-sm">
+                  Analytics e métricas detalhadas
+                </Text>
+              </View>
+            </View>
+            <Text className="text-white text-2xl">→</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ backgroundColor: colors.primary }}
+            className="flex-row items-center justify-between p-5 rounded-2xl shadow-sm active:opacity-80"
+            activeOpacity={0.8}
+            onPress={() => router.push('/prestador/configuracoes')}
+          >
+            <View className="flex-row items-center">
+              <Text className="text-3xl mr-4">⚙️</Text>
+              <View>
+                <Text className="text-white text-lg font-bold mb-1">
+                  Configurações
+                </Text>
+                <Text className="text-white/80 text-sm">
+                  Personalize cores e preferências
+                </Text>
+              </View>
+            </View>
+            <Text className="text-white text-2xl">→</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Card Informativo */}

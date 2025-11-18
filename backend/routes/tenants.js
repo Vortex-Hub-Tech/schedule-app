@@ -114,3 +114,45 @@ router.get('/:id/bootstrap', async (req, res) => {
 });
 
 module.exports = router;
+const express = require('express');
+const router = express.Router();
+const { vortexPool } = require('../db');
+const { validateTenant } = require('../middleware/tenant');
+
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await vortexPool.query(
+      'SELECT * FROM tenants WHERE id = $1',
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Tenant não encontrado' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar tenant' });
+  }
+});
+
+router.patch('/settings', validateTenant, async (req, res) => {
+  try {
+    const { settings } = req.body;
+    
+    const result = await vortexPool.query(
+      'UPDATE tenants SET settings = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [JSON.stringify(settings), req.tenantId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Tenant não encontrado' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Erro ao atualizar settings:', error);
+    res.status(500).json({ error: 'Erro ao atualizar configurações' });
+  }
+});
+
+module.exports = router;

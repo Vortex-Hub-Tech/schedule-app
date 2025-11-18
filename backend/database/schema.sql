@@ -24,11 +24,30 @@ CREATE TABLE IF NOT EXISTS appointments (
   appointment_time TIME NOT NULL,
   status VARCHAR(20) DEFAULT 'pendente',
   notes TEXT,
+  reminder_sent BOOLEAN DEFAULT FALSE,
+  device_id VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(id, tenant_id),
   FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS sms_logs (
+  id SERIAL PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL,
+  phone VARCHAR(20) NOT NULL,
+  message TEXT NOT NULL,
+  sender_id VARCHAR(255),
+  status VARCHAR(20) DEFAULT 'pending',
+  nitro_response JSONB,
+  error_message TEXT,
+  sent_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_sms_logs_tenant ON sms_logs(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_sms_logs_status ON sms_logs(status);
+CREATE INDEX IF NOT EXISTS idx_appointments_reminder ON appointments(tenant_id, appointment_date, reminder_sent) WHERE status = 'pendente';
 
 CREATE TABLE IF NOT EXISTS validations (
   id SERIAL PRIMARY KEY,

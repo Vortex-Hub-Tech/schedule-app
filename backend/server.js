@@ -52,6 +52,7 @@ const appointmentsRoutes = require('./routes/appointments');
 const validationRoutes = require('./routes/validation');
 const ownerRoutes = require('./routes/owner');
 const smsLogsRoutes = require('./routes/sms-logs');
+const analyticsRoutes = require('./routes/analytics');
 const landingRoutesModule = require('./routes/landing');
 
 app.use('/api/tenants', tenantsRoutes);
@@ -60,12 +61,16 @@ app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/validation', validationRoutes);
 app.use('/api/owner', ownerRoutes);
 app.use('/api/sms-logs', smsLogsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api', landingRoutesModule);
 
 app.get('/', (req, res) => {
   res.redirect('/landing/index.html');
 });
 
+const { startReminderJob } = require('./jobs/reminders');
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  startReminderJob();
 });
