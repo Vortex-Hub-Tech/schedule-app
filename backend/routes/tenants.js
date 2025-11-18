@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool, vortexPool } = require('../db');
-const { validateTenant } = require('../middleware/tenant');
+
 router.get('/', async (req, res) => {
   try {
     const result = await vortexPool.query(
@@ -113,13 +113,18 @@ router.get('/:id/bootstrap', async (req, res) => {
   }
 });
 
-router.patch('/settings', validateTenant, async (req, res) => {
+router.patch('/settings', async (req, res) => {
   try {
     const { settings } = req.body;
+    const tenantId = req.headers['x-tenant-id'];
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID não fornecido' });
+    }
     
     const result = await vortexPool.query(
       'UPDATE tenants SET settings = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-      [JSON.stringify(settings), req.tenantId]
+      [JSON.stringify(settings), tenantId]
     );
     
     if (result.rows.length === 0) {

@@ -1,3 +1,4 @@
+
 export const getThemeColors = (theme) => {
   switch (theme) {
     case 'pink':
@@ -21,7 +22,21 @@ export const getThemeColors = (theme) => {
         gradient: ['#f97316', '#fb923c'],
         text: '#c2410c'
       };
-    default:
+    case 'green':
+      return { 
+        primary: '#10b981', 
+        light: '#d1fae5',
+        gradient: ['#10b981', '#34d399'],
+        text: '#065f46'
+      };
+    case 'purple':
+      return { 
+        primary: '#8b5cf6', 
+        light: '#ede9fe',
+        gradient: ['#8b5cf6', '#a78bfa'],
+        text: '#6d28d9'
+      };
+    default: // sky
       return { 
         primary: '#0ea5e9', 
         light: '#e0f2fe',

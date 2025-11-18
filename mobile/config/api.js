@@ -54,6 +54,7 @@ export default {
     getAll: () => axios.get(`${API_URL}/tenants`),
     getById: (id) => axios.get(`${API_URL}/tenants/${id}`),
     getBootstrap: (id) => axios.get(`${API_URL}/tenants/${id}/bootstrap`),
+    updateSettings: (settings) => api.patch('/tenants/settings', { settings }),
   },
   services: {
     getAll: () => api.get('/services'),

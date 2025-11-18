@@ -1,5 +1,5 @@
 
-import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, Switch } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import apiClient from '../../config/api';
@@ -9,7 +9,14 @@ import { getThemeColors } from '../../utils/theme';
 export default function Configuracoes() {
   const router = useRouter();
   const [tenant, setTenant] = useState(null);
-  const [selectedTheme, setSelectedTheme] = useState('sky');
+  const [settings, setSettings] = useState({
+    theme: 'sky',
+    welcomeMessage: 'Bem-vindo!',
+    enableNotifications: true,
+    enableReminders: true,
+    reminderHours: 24,
+  });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadTenant();
@@ -18,108 +25,144 @@ export default function Configuracoes() {
   const loadTenant = async () => {
     const savedTenant = await TenantStorage.getTenant();
     setTenant(savedTenant);
-    setSelectedTheme(savedTenant?.settings?.theme || 'sky');
+    
+    if (savedTenant?.settings) {
+      setSettings({
+        theme: savedTenant.settings.theme || 'sky',
+        welcomeMessage: savedTenant.settings.welcomeMessage || 'Bem-vindo!',
+        enableNotifications: savedTenant.settings.enableNotifications ?? true,
+        enableReminders: savedTenant.settings.enableReminders ?? true,
+        reminderHours: savedTenant.settings.reminderHours || 24,
+      });
+    }
   };
 
-  const updateTheme = async (theme) => {
+  const saveSettings = async () => {
     try {
-      setSelectedTheme(theme);
+      setSaving(true);
       
       const updatedSettings = {
         ...tenant.settings,
-        theme
+        ...settings,
       };
 
-      await apiClient.patch('/tenants/settings', { settings: updatedSettings });
+      const response = await apiClient.tenants.updateSettings(updatedSettings);
       
       const updatedTenant = {
         ...tenant,
-        settings: updatedSettings
+        settings: response.data.settings,
       };
       
       await TenantStorage.saveTenant(updatedTenant);
       setTenant(updatedTenant);
       
-      Alert.alert('✅ Sucesso', 'Tema atualizado com sucesso!');
+      Alert.alert('✅ Sucesso', 'Configurações salvas com sucesso!');
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível atualizar o tema');
+      console.error('Erro ao salvar configurações:', error);
+      Alert.alert('❌ Erro', 'Não foi possível salvar as configurações. Tente novamente.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const colors = getThemeColors(selectedTheme);
+  const updateSetting = (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const colors = getThemeColors(settings.theme);
 
   const themes = [
-    { value: 'sky', name: 'Azul Céu', color: '#0ea5e9', emoji: '🌊' },
-    { value: 'pink', name: 'Rosa', color: '#ec4899', emoji: '🌸' },
-    { value: 'blue', name: 'Azul', color: '#3b82f6', emoji: '💙' },
-    { value: 'orange', name: 'Laranja', color: '#f97316', emoji: '🔥' },
+    { value: 'sky', name: 'Azul Céu', color: '#0ea5e9', emoji: '🌊', gradient: ['#0ea5e9', '#38bdf8'] },
+    { value: 'pink', name: 'Rosa', color: '#ec4899', emoji: '🌸', gradient: ['#ec4899', '#f472b6'] },
+    { value: 'blue', name: 'Azul', color: '#3b82f6', emoji: '💙', gradient: ['#3b82f6', '#60a5fa'] },
+    { value: 'orange', name: 'Laranja', color: '#f97316', emoji: '🔥', gradient: ['#f97316', '#fb923c'] },
+    { value: 'green', name: 'Verde', color: '#10b981', emoji: '🍀', gradient: ['#10b981', '#34d399'] },
+    { value: 'purple', name: 'Roxo', color: '#8b5cf6', emoji: '💜', gradient: ['#8b5cf6', '#a78bfa'] },
   ];
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-6 px-6 rounded-b-3xl shadow-lg">
+      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-6 px-6 shadow-lg">
         <TouchableOpacity onPress={() => router.back()} className="mb-4">
           <View className="flex-row items-center">
             <Text className="text-white text-2xl mr-2">←</Text>
             <Text className="text-white text-base font-medium">Voltar</Text>
           </View>
         </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold mb-1">Configurações</Text>
+        <Text className="text-white text-3xl font-bold mb-1">⚙️ Configurações</Text>
         <Text className="text-white/90 text-base">Personalize seu app</Text>
       </View>
 
-      <ScrollView className="flex-1 px-6 -mt-4">
+      <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
         {/* Informações da Empresa */}
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
           <Text className="text-xl font-bold text-gray-800 mb-4">
             🏢 Informações da Empresa
           </Text>
-          <View className="mb-4">
-            <Text className="text-gray-600 mb-2">Nome da Empresa</Text>
+          <View className="mb-3">
+            <Text className="text-gray-600 text-sm mb-1">Nome da Empresa</Text>
             <Text className="text-lg font-bold text-gray-800">{tenant?.name}</Text>
           </View>
-          <View className="mb-4">
-            <Text className="text-gray-600 mb-2">ID do Tenant</Text>
-            <Text className="text-sm text-gray-500 font-mono">{tenant?.id}</Text>
-          </View>
-          <View>
-            <Text className="text-gray-600 mb-2">Plano</Text>
-            <Text className="text-lg font-bold capitalize" style={{ color: colors.primary }}>
-              {tenant?.plan}
-            </Text>
+          <View className="mb-3">
+            <Text className="text-gray-600 text-sm mb-1">Plano Atual</Text>
+            <View className="bg-gradient-to-r p-3 rounded-xl" style={{ backgroundColor: colors.light }}>
+              <Text className="text-lg font-bold capitalize" style={{ color: colors.text }}>
+                {tenant?.plan}
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* Personalização de Cores */}
+        {/* Mensagem de Boas-vindas */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-4">
+            👋 Mensagem de Boas-vindas
+          </Text>
+          <Text className="text-gray-600 text-sm mb-3">
+            Personalize a mensagem que seus clientes verão
+          </Text>
+          <TextInput
+            className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-base"
+            value={settings.welcomeMessage}
+            onChangeText={(text) => updateSetting('welcomeMessage', text)}
+            placeholder="Ex: Bem-vindo ao nosso salão!"
+            maxLength={100}
+          />
+          <Text className="text-gray-400 text-xs mt-2 text-right">
+            {settings.welcomeMessage.length}/100 caracteres
+          </Text>
+        </View>
+
+        {/* Tema e Cores */}
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
           <Text className="text-xl font-bold text-gray-800 mb-4">
             🎨 Tema e Cores
           </Text>
-          <Text className="text-gray-600 mb-4">
-            Escolha a cor principal do seu app
+          <Text className="text-gray-600 text-sm mb-4">
+            Escolha a cor que representa sua marca
           </Text>
           <View className="flex-row flex-wrap gap-3">
             {themes.map((theme) => (
               <TouchableOpacity
                 key={theme.value}
-                onPress={() => updateTheme(theme.value)}
+                onPress={() => updateSetting('theme', theme.value)}
                 className="flex-1"
-                style={{ minWidth: '45%' }}
+                style={{ minWidth: '30%' }}
               >
                 <View
                   style={{
-                    backgroundColor: selectedTheme === theme.value ? theme.color : '#f3f4f6',
-                    borderWidth: 2,
-                    borderColor: selectedTheme === theme.value ? theme.color : 'transparent',
+                    backgroundColor: settings.theme === theme.value ? theme.color : '#f3f4f6',
+                    borderWidth: 3,
+                    borderColor: settings.theme === theme.value ? theme.color : 'transparent',
                   }}
-                  className="p-4 rounded-xl items-center"
+                  className="p-4 rounded-2xl items-center shadow-sm"
                 >
                   <Text className="text-3xl mb-2">{theme.emoji}</Text>
                   <Text
-                    className="font-bold"
+                    className="font-bold text-sm"
                     style={{
-                      color: selectedTheme === theme.value ? '#fff' : '#374151',
+                      color: settings.theme === theme.value ? '#fff' : '#374151',
                     }}
                   >
                     {theme.name}
@@ -130,51 +173,114 @@ export default function Configuracoes() {
           </View>
         </View>
 
-        {/* Segurança e Privacidade */}
+        {/* Notificações e Lembretes */}
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-4">
+            🔔 Notificações e Lembretes
+          </Text>
+          
+          <View className="mb-4">
+            <View className="flex-row justify-between items-center mb-2">
+              <View className="flex-1">
+                <Text className="text-gray-800 font-semibold text-base">Notificações Push</Text>
+                <Text className="text-gray-500 text-sm">Receba alertas de novos agendamentos</Text>
+              </View>
+              <Switch
+                value={settings.enableNotifications}
+                onValueChange={(value) => updateSetting('enableNotifications', value)}
+                trackColor={{ false: '#d1d5db', true: colors.primary }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+
+          <View className="border-t border-gray-100 pt-4 mb-4">
+            <View className="flex-row justify-between items-center mb-2">
+              <View className="flex-1">
+                <Text className="text-gray-800 font-semibold text-base">Lembretes Automáticos</Text>
+                <Text className="text-gray-500 text-sm">Envie SMS automáticos aos clientes</Text>
+              </View>
+              <Switch
+                value={settings.enableReminders}
+                onValueChange={(value) => updateSetting('enableReminders', value)}
+                trackColor={{ false: '#d1d5db', true: colors.primary }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+
+          {settings.enableReminders && (
+            <View className="bg-gradient-to-r p-4 rounded-xl" style={{ backgroundColor: colors.light }}>
+              <Text className="text-gray-700 font-semibold mb-3">Enviar lembrete com antecedência de:</Text>
+              <View className="flex-row gap-2">
+                {[12, 24, 48].map((hours) => (
+                  <TouchableOpacity
+                    key={hours}
+                    onPress={() => updateSetting('reminderHours', hours)}
+                    className="flex-1"
+                  >
+                    <View
+                      style={{
+                        backgroundColor: settings.reminderHours === hours ? colors.primary : '#fff',
+                        borderWidth: 2,
+                        borderColor: settings.reminderHours === hours ? colors.primary : '#e5e7eb',
+                      }}
+                      className="p-3 rounded-xl items-center"
+                    >
+                      <Text
+                        className="font-bold"
+                        style={{
+                          color: settings.reminderHours === hours ? '#fff' : '#6b7280',
+                        }}
+                      >
+                        {hours}h
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Segurança */}
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
           <Text className="text-xl font-bold text-gray-800 mb-4">
             🔒 Segurança e Privacidade
           </Text>
-          <View className="bg-green-50 border border-green-200 rounded-xl p-4 mb-3">
+          <View className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-3">
             <View className="flex-row items-center mb-2">
-              <Text className="text-2xl mr-2">✅</Text>
-              <Text className="font-bold text-green-800">Dados Criptografados</Text>
+              <Text className="text-2xl mr-3">✅</Text>
+              <Text className="font-bold text-green-800 flex-1">Dados Criptografados</Text>
             </View>
-            <Text className="text-green-700 text-sm">
-              Todas as informações são criptografadas em trânsito e em repouso
+            <Text className="text-green-700 text-sm ml-11">
+              Todas as informações são criptografadas de ponta a ponta
             </Text>
           </View>
-          <View className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <View className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
             <View className="flex-row items-center mb-2">
-              <Text className="text-2xl mr-2">🛡️</Text>
-              <Text className="font-bold text-blue-800">Conformidade LGPD</Text>
+              <Text className="text-2xl mr-3">🛡️</Text>
+              <Text className="font-bold text-blue-800 flex-1">Conformidade LGPD</Text>
             </View>
-            <Text className="text-blue-700 text-sm">
-              Sistema em conformidade com a Lei Geral de Proteção de Dados
-            </Text>
-          </View>
-        </View>
-
-        {/* Notificações */}
-        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
-          <Text className="text-xl font-bold text-gray-800 mb-4">
-            🔔 Notificações
-          </Text>
-          <Text className="text-gray-600 mb-3">
-            Lembretes automáticos são enviados 24h antes do agendamento
-          </Text>
-          <View className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-            <View className="flex-row items-center mb-2">
-              <Text className="text-2xl mr-2">📱</Text>
-              <Text className="font-bold text-purple-800">SMS Inteligentes</Text>
-            </View>
-            <Text className="text-purple-700 text-sm">
-              Redução de até 80% em faltas com lembretes automáticos
+            <Text className="text-blue-700 text-sm ml-11">
+              100% em conformidade com a Lei Geral de Proteção de Dados
             </Text>
           </View>
         </View>
 
-        <View className="h-6" />
+        {/* Botão Salvar */}
+        <TouchableOpacity
+          onPress={saveSettings}
+          disabled={saving}
+          style={{ backgroundColor: colors.primary }}
+          className="rounded-2xl p-5 mb-8 shadow-lg"
+        >
+          <Text className="text-white text-center text-lg font-bold">
+            {saving ? '⏳ Salvando...' : '💾 Salvar Configurações'}
+          </Text>
+        </TouchableOpacity>
+
+        <View className="h-4" />
       </ScrollView>
     </View>
   );
