@@ -80,7 +80,11 @@ export default function PrestadorHome() {
         className="pt-16 pb-12 px-6 rounded-b-[32px] shadow-2xl"
       >
         <View className="flex-row items-center justify-between mb-6">
-          <View className="bg-white/20 w-20 h-20 rounded-3xl items-center justify-center border-2 border-white/30">
+          <TouchableOpacity 
+            className="bg-white/20 w-20 h-20 rounded-3xl items-center justify-center border-2 border-white/30"
+            onPress={() => router.push('/prestador/perfil')}
+            activeOpacity={0.7}
+          >
             {logoUrl ? (
               <Image 
                 source={{ uri: logoUrl }} 
@@ -90,14 +94,23 @@ export default function PrestadorHome() {
             ) : (
               <Text className="text-white text-4xl">💼</Text>
             )}
-          </View>
-          <TouchableOpacity
-            className="bg-white/20 px-5 py-3 rounded-2xl border border-white/30"
-            onPress={handleLogout}
-            activeOpacity={0.8}
-          >
-            <Text className="text-white font-bold text-sm tracking-wide">Sair →</Text>
           </TouchableOpacity>
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              className="bg-white/20 px-4 py-3 rounded-2xl border border-white/30"
+              onPress={() => router.push('/prestador/perfil')}
+              activeOpacity={0.8}
+            >
+              <Text className="text-white text-xl">👤</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-white/20 px-5 py-3 rounded-2xl border border-white/30"
+              onPress={handleLogout}
+              activeOpacity={0.8}
+            >
+              <Text className="text-white font-bold text-sm tracking-wide">Sair →</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <Text className="text-white text-3xl font-bold mb-2 tracking-tight">
           Painel do Prestador
