@@ -56,6 +56,12 @@ export default function ClienteLayout() {
           headerShown: false,
         }} 
       />
+      <Stack.Screen 
+        name="avaliar/[id]" 
+        options={{ 
+          headerShown: false,
+        }} 
+      />
     </Stack>
   );
 }
