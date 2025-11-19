@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { TouchableOpacity, Animated, StyleSheet } from 'react-native';
 
-export function FavoriteButton({ isFavorite: initialFavorite, onToggle, size = 24 }) {
-  const [isFavorite, setIsFavorite] = useState(initialFavorite);
-  const scaleAnim = useState(new Animated.Value(1))[0];
+export function FavoriteButton({ isFavorite, onToggle, size = 24 }) {
+  const [scaleAnim] = useState(new Animated.Value(1));
 
   const handlePress = () => {
     Animated.sequence([
@@ -19,8 +19,7 @@ export function FavoriteButton({ isFavorite: initialFavorite, onToggle, size = 2
       }),
     ]).start();
 
-    setIsFavorite(!isFavorite);
-    if (onToggle) onToggle(!isFavorite);
+    if (onToggle) onToggle();
   };
 
   return (

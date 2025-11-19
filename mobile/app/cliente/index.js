@@ -28,6 +28,7 @@ export default function ClienteHome() {
   useFocusEffect(
     useCallback(() => {
       loadFavorites();
+      return () => {};
     }, [])
   );
 
