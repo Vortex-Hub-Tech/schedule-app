@@ -29,6 +29,20 @@ export default function ClienteLayout() {
         }} 
       />
       <Stack.Screen 
+        name="estatisticas" 
+        options={{ 
+          title: 'Estatísticas',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
+        name="favoritos" 
+        options={{ 
+          title: 'Favoritos',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="agendar/[id]" 
         options={{ 
           title: 'Agendar Serviço',

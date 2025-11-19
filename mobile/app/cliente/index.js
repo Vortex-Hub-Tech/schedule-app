@@ -1,11 +1,17 @@
 
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../../config/api';
 import { TenantStorage } from '../../utils/storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getThemeColors } from '../../utils/theme';
+import { SkeletonCard } from '../../components/ui/SkeletonLoader';
+import { QuickAction } from '../../components/ui/QuickAction';
+import { FavoriteButton } from '../../components/ui/FavoriteButton';
+import { StarRatingDisplay } from '../../components/ui/StarRating';
+import { FavoritesStorage } from '../../utils/favorites';
+import { useFocusEffect } from 'expo-router';
 
 export default function ClienteHome() {
   const router = useRouter();
@@ -13,10 +19,27 @@ export default function ClienteHome() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tenant, setTenant] = useState(null);
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFavorites();
+    }, [])
+  );
+
+  const loadFavorites = async () => {
+    const favs = await FavoritesStorage.getFavorites();
+    setFavorites(favs);
+  };
+
+  const handleToggleFavorite = async (serviceId) => {
+    await FavoritesStorage.toggleFavorite(serviceId);
+    await loadFavorites();
+  };
 
   const loadData = async () => {
     const savedTenant = await TenantStorage.getTenant();
@@ -55,9 +78,21 @@ export default function ClienteHome() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-50 justify-center items-center">
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text className="text-gray-600 mt-4 text-base font-medium">Carregando serviços...</Text>
+      <View className="flex-1 bg-gray-50">
+        <LinearGradient
+          colors={colors.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="pt-16 pb-10 px-6 rounded-b-[32px] shadow-2xl"
+        >
+          <Text className="text-white text-3xl font-bold mb-2">
+            Carregando...
+          </Text>
+        </LinearGradient>
+        <View className="px-6 -mt-6">
+          <SkeletonCard />
+          <SkeletonCard />
+        </View>
       </View>
     );
   }
@@ -102,6 +137,39 @@ export default function ClienteHome() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
+        {/* Quick Actions */}
+        <View className="bg-white rounded-3xl p-6 mt-4 mb-6 shadow-lg">
+          <Text className="text-gray-800 text-lg font-bold mb-4">Ações Rápidas</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-2">
+            <View className="flex-row space-x-4 px-2">
+              <QuickAction
+                icon="📅"
+                label="Meus Agendamentos"
+                onPress={() => router.push('/cliente/meus-agendamentos')}
+                color="#0ea5e9"
+              />
+              <QuickAction
+                icon="📊"
+                label="Estatísticas"
+                onPress={() => router.push('/cliente/estatisticas')}
+                color="#8b5cf6"
+              />
+              <QuickAction
+                icon="🕐"
+                label="Histórico"
+                onPress={() => router.push('/cliente/meus-agendamentos')}
+                color="#10b981"
+              />
+              <QuickAction
+                icon="⭐"
+                label="Favoritos"
+                onPress={() => router.push('/cliente/favoritos')}
+                color="#f59e0b"
+              />
+            </View>
+          </ScrollView>
+        </View>
+
         {services.length === 0 ? (
           <View className="bg-white rounded-3xl p-10 mt-4 items-center shadow-lg border border-gray-100">
             <Text className="text-7xl mb-5">😔</Text>
@@ -138,9 +206,17 @@ export default function ClienteHome() {
                         <Text className="text-2xl">✂️</Text>
                       </View>
                       <View className="flex-1">
-                        <Text className="text-xl font-bold text-gray-800 mb-1">
-                          {service.name}
-                        </Text>
+                        <View className="flex-row items-center justify-between">
+                          <Text className="text-xl font-bold text-gray-800 mb-1 flex-1">
+                            {service.name}
+                          </Text>
+                          <FavoriteButton
+                            isFavorite={favorites.includes(service.id)}
+                            onToggle={() => handleToggleFavorite(service.id)}
+                            size={24}
+                          />
+                        </View>
+                        <StarRatingDisplay rating={service.rating || 4.5} count={service.reviews_count || 0} size={14} />
                       </View>
                     </View>
                     {service.description && (

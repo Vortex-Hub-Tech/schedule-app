@@ -42,6 +42,13 @@ export default function PrestadorLayout() {
         }} 
       />
       <Stack.Screen 
+        name="perfil" 
+        options={{ 
+          title: 'Meu Perfil',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="servicos/index" 
         options={{ 
           title: 'Meus Serviços',
