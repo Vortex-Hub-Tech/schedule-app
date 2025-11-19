@@ -48,6 +48,17 @@ App mobile (React Native/Expo) para agendamento de serviços com dois modos:
 4. Próximas aberturas redirecionam automaticamente para a área correta
 
 ## Últimas Alterações
+- 2025-11-19: **Funcionalidades Profissionais Implementadas**
+  - **Componentes UI Reutilizáveis**: SkeletonLoader, StarRating, FavoriteButton, StatusBadge, StatsCard, QuickAction
+  - **Tela Inicial Redesenhada**: Quick Actions para acesso rápido (Agendamentos, Estatísticas, Histórico, Favoritos)
+  - **Sistema de Favoritos**: AsyncStorage local, tela dedicada de favoritos, botões de favoritar em cada serviço
+  - **Tela de Estatísticas**: Métricas do cliente (total, pendentes, realizados, cancelados) com taxa de conclusão
+  - **Perfil do Prestador**: Tela profissional com informações, horários, desempenho e estatísticas
+  - **Sistema de Avaliações (UI)**: Componente StarRating e StarRatingDisplay prontos para integração backend
+  - **Skeleton Loading**: Loading state profissional com animação pulsante
+  - **Melhorias Visuais**: Animações suaves, transições, cards modernos inspirados em Uber/iFood
+  - **Status Badges**: Indicadores visuais coloridos para status de agendamentos
+
 - 2025-11-19: **Adicionada tela de carregamento (Splash Screen)**
   - Instalado pacote expo-splash-screen
   - Criado componente AppSplashScreen com design moderno
