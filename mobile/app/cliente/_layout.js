@@ -43,6 +43,13 @@ export default function ClienteLayout() {
         }} 
       />
       <Stack.Screen 
+        name="historico" 
+        options={{ 
+          title: 'Histórico',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="agendar/[id]" 
         options={{ 
           title: 'Agendar Serviço',

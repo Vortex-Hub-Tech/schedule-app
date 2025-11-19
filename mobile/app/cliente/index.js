@@ -157,7 +157,7 @@ export default function ClienteHome() {
               <QuickAction
                 icon="🕐"
                 label="Histórico"
-                onPress={() => router.push('/cliente/meus-agendamentos')}
+                onPress={() => router.push('/cliente/historico')}
                 color="#10b981"
               />
               <QuickAction
@@ -261,27 +261,6 @@ export default function ClienteHome() {
 
         <View className="h-8" />
       </ScrollView>
-
-      {/* Floating Action Button */}
-      <View className="px-6 pb-8 pt-4 bg-white/95 border-t border-gray-100">
-        <TouchableOpacity 
-          className="bg-gray-800 py-5 rounded-2xl flex-row items-center justify-center shadow-xl active:opacity-80"
-          activeOpacity={0.8}
-          onPress={() => router.push('/cliente/meus-agendamentos')}
-          style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-            elevation: 8,
-          }}
-        >
-          <Text className="text-white text-xl font-bold mr-3">📅</Text>
-          <Text className="text-white text-base font-bold tracking-wide">
-            Meus Agendamentos
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
