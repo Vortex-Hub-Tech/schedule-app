@@ -64,7 +64,7 @@ export default function Avaliacoes() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-8 px-6 rounded-b-3xl">
+       <View style={{ backgroundColor: colors.primary }} className="pt-14 pb-6 px-6 rounded-b-3xl shadow-lg">
         <TouchableOpacity onPress={() => router.back()} className="mb-4">
           <View className="flex-row items-center">
             <Text className="text-white text-2xl mr-2">←</Text>
