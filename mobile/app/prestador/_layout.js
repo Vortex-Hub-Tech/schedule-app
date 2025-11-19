@@ -49,6 +49,13 @@ export default function PrestadorLayout() {
         }} 
       />
       <Stack.Screen 
+        name="avaliacoes" 
+        options={{ 
+          title: 'Avaliações',
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="servicos/index" 
         options={{ 
           title: 'Meus Serviços',
