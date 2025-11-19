@@ -87,6 +87,10 @@ export default {
     verifyOwner: (tenantId, deviceId) => api.post('/owner/verify-owner', { tenantId, deviceId }),
     claimOwnership: (tenantId, deviceId) => api.post('/owner/claim-ownership', { tenantId, deviceId }),
   },
+  analytics: {
+    getDashboard: () => api.get('/analytics/dashboard'),
+    getConversion: () => api.get('/analytics/conversion')
+  },
   chat: {
     getMessages: async (appointmentId, since = null) => {
       const params = since ? `?since=${since}` : '';
