@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, ActivityIndicator, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
@@ -6,8 +6,8 @@ import * as SplashScreen from 'expo-splash-screen';
 SplashScreen.preventAutoHideAsync();
 
 export default function AppSplashScreen({ onReady }) {
-  const fadeAnim = new Animated.Value(0);
-  const scaleAnim = new Animated.Value(0.8);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -30,7 +30,7 @@ export default function AppSplashScreen({ onReady }) {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [fadeAnim, scaleAnim, onReady]);
 
   return (
     <LinearGradient
