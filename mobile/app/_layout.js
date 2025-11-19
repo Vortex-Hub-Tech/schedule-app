@@ -1,15 +1,7 @@
-import { useState } from 'react';
 import { Stack } from 'expo-router';
 import '../global.css';
-import AppSplashScreen from '../components/SplashScreen';
 
 export default function Layout() {
-  const [isReady, setIsReady] = useState(false);
-
-  if (!isReady) {
-    return <AppSplashScreen onReady={() => setIsReady(true)} />;
-  }
-
   return (
     <Stack
       screenOptions={{
@@ -26,13 +18,6 @@ export default function Layout() {
         name="index" 
         options={{ 
           title: 'Bem-vindo',
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="select-tenant" 
-        options={{ 
-          title: 'Selecionar Empresa',
           headerShown: false,
         }} 
       />
