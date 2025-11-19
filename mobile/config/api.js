@@ -76,8 +76,12 @@ export default {
   },
 
   feedbacks: {
-    create: async (data) => api.post('/feedbacks', data),
-    getByTenant: async () => api.get('/feedbacks'),
+    getAll: (params) => api.get('/feedbacks', { params }),
+    getByAppointment: (appointmentId) => api.get(`/feedbacks/appointment/${appointmentId}`),
+    getStats: () => api.get('/feedbacks/stats'),
+    create: (data) => api.post('/feedbacks', data),
+    update: (id, data) => api.patch(`/feedbacks/${id}`, data),
+    delete: (id) => api.delete(`/feedbacks/${id}`),
   },
   owner: {
     verifyOwner: (tenantId, deviceId) => api.post('/owner/verify-owner', { tenantId, deviceId }),
