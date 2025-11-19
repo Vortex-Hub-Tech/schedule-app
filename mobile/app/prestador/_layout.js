@@ -76,6 +76,13 @@ export default function PrestadorLayout() {
           headerShown: false,
         }} 
       />
+      <Stack.Screen 
+        name="chat/[id]" 
+        options={{ 
+          title: 'Chat',
+          headerShown: false,
+        }} 
+      />
     </Stack>
   );
 }

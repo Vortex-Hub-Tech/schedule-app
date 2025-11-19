@@ -242,17 +242,30 @@ export default function MeusAgendamentos() {
                     </View>
                   </View>
 
-                  {/* Cancel Button */}
+                  {/* Action Buttons */}
                   {appointment.status === 'pendente' && (
-                    <TouchableOpacity
-                      className="bg-red-50 border-2 border-red-200 py-4 rounded-2xl active:opacity-70"
-                      activeOpacity={0.8}
-                      onPress={() => handleCancel(appointment.id)}
-                    >
-                      <Text className="text-red-600 text-center font-bold text-base">
-                        Cancelar Agendamento
-                      </Text>
-                    </TouchableOpacity>
+                    <View className="space-y-3">
+                      <TouchableOpacity
+                        style={{ backgroundColor: colors.primary }}
+                        className="py-4 rounded-2xl active:opacity-70 flex-row items-center justify-center"
+                        activeOpacity={0.8}
+                        onPress={() => router.push(`/cliente/chat/${appointment.id}`)}
+                      >
+                        <Text className="text-white text-xl mr-2">💬</Text>
+                        <Text className="text-white text-center font-bold text-base">
+                          Chat com Prestador
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="bg-red-50 border-2 border-red-200 py-4 rounded-2xl active:opacity-70"
+                        activeOpacity={0.8}
+                        onPress={() => handleCancel(appointment.id)}
+                      >
+                        <Text className="text-red-600 text-center font-bold text-base">
+                          Cancelar Agendamento
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   )}
                   
                   {/* Rating Button */}
