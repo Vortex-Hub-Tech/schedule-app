@@ -76,15 +76,18 @@ export default {
   },
 
   feedbacks: {
-    getAll: (params) => api.get('/feedbacks', { params }),
-    getByAppointment: (appointmentId) => api.get(`/feedbacks/appointment/${appointmentId}`),
-    getStats: () => api.get('/feedbacks/stats'),
-    create: (data) => api.post('/feedbacks', data),
-    update: (id, data) => api.patch(`/feedbacks/${id}`, data),
-    delete: (id) => api.delete(`/feedbacks/${id}`),
+    create: async (data) => api.post('/feedbacks', data),
+    getByTenant: async () => api.get('/feedbacks'),
   },
-  owner: {
-    verifyOwner: (tenantId, deviceId) => api.post('/owner/verify-owner', { tenantId, deviceId }),
-    claimOwnership: (tenantId, deviceId) => api.post('/owner/claim-ownership', { tenantId, deviceId }),
+
+  chat: {
+    getMessages: async (appointmentId, since = null) => {
+      const params = since ? `?since=${since}` : '';
+      return api.get(`/chat/${appointmentId}${params}`);
+    },
+    sendMessage: async (appointmentId, message, isClient) => 
+      api.post(`/chat/${appointmentId}`, { message, is_client: isClient }),
+    markAsRead: async (appointmentId, isClient) => 
+      api.patch(`/chat/${appointmentId}/read`, { is_client: isClient }),
   },
 };

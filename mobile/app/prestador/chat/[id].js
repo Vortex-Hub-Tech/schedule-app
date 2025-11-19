@@ -18,12 +18,20 @@ export default function PrestadorChat() {
   const [appointment, setAppointment] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lastMessageTime, setLastMessageTime] = useState(null);
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadMessages, 3000);
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    // Polling a cada 3 segundos
+    const interval = setInterval(() => {
+      loadMessages(true);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [lastMessageTime]);
 
   const loadData = async () => {
     try {
@@ -33,7 +41,7 @@ export default function PrestadorChat() {
       const aptResponse = await apiClient.appointments.getById(id);
       setAppointment(aptResponse.data);
       
-      await loadMessages();
+      await loadMessages(false);
     } catch (error) {
       console.error('Erro ao carregar chat:', error);
     } finally {
@@ -41,25 +49,29 @@ export default function PrestadorChat() {
     }
   };
 
-  const loadMessages = async () => {
+  const loadMessages = async (isPolling = false) => {
     try {
-      // Mock data
-      setMessages([
-        {
-          id: 1,
-          message: 'Olá! Vi que você agendou um horário. Tudo certo?',
-          is_client: false,
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          status: 'read'
-        },
-        {
-          id: 2,
-          message: 'Oi! Sim, está confirmado para amanhã às 14h?',
-          is_client: true,
-          timestamp: new Date(Date.now() - 3000000).toISOString(),
-          status: 'read'
+      const response = await apiClient.chat.getMessages(id, isPolling ? lastMessageTime : null);
+      
+      if (isPolling && response.data.length > 0) {
+        setMessages(prev => [...prev, ...response.data]);
+        const lastMsg = response.data[response.data.length - 1];
+        setLastMessageTime(lastMsg.created_at);
+        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+        
+        // Marcar mensagens do cliente como lidas
+        await apiClient.chat.markAsRead(id, false);
+      } else if (!isPolling) {
+        setMessages(response.data);
+        if (response.data.length > 0) {
+          const lastMsg = response.data[response.data.length - 1];
+          setLastMessageTime(lastMsg.created_at);
         }
-      ]);
+        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+        
+        // Marcar mensagens do cliente como lidas
+        await apiClient.chat.markAsRead(id, false);
+      }
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
     }
@@ -67,15 +79,12 @@ export default function PrestadorChat() {
 
   const handleSend = async (message) => {
     try {
-      const newMessage = {
-        id: Date.now(),
-        message,
-        is_client: false,
-        timestamp: new Date().toISOString(),
-        status: 'sent'
-      };
+      const response = await apiClient.chat.sendMessage(id, message, false);
+      const newMessage = response.data;
       
       setMessages(prev => [...prev, newMessage]);
+      setLastMessageTime(newMessage.created_at);
+      
       setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
@@ -133,7 +142,7 @@ export default function PrestadorChat() {
             key={msg.id}
             message={msg.message}
             isSent={!msg.is_client}
-            timestamp={msg.timestamp}
+            timestamp={msg.created_at}
             status={msg.status}
           />
         ))}

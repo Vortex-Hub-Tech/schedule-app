@@ -18,13 +18,20 @@ export default function ClienteChat() {
   const [appointment, setAppointment] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [lastMessageTime, setLastMessageTime] = useState(null);
 
   useEffect(() => {
     loadData();
-    // Simular polling a cada 3 segundos para novas mensagens
-    const interval = setInterval(loadMessages, 3000);
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    // Polling a cada 3 segundos para novas mensagens
+    const interval = setInterval(() => {
+      loadMessages(true);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [lastMessageTime]);
 
   const loadData = async () => {
     try {
@@ -35,7 +42,7 @@ export default function ClienteChat() {
       const aptResponse = await apiClient.appointments.getById(id);
       setAppointment(aptResponse.data);
       
-      await loadMessages();
+      await loadMessages(false);
     } catch (error) {
       console.error('Erro ao carregar chat:', error);
     } finally {
@@ -43,36 +50,31 @@ export default function ClienteChat() {
     }
   };
 
-  const loadMessages = async () => {
+  const loadMessages = async (isPolling = false) => {
     try {
-      // Endpoint fictício - implementar no backend
-      // const response = await apiClient.get(`/chat/${id}`);
-      // setMessages(response.data);
+      const response = await apiClient.chat.getMessages(id, isPolling ? lastMessageTime : null);
       
-      // Dados mock para demonstração
-      setMessages([
-        {
-          id: 1,
-          message: 'Olá! Vi que você agendou um horário. Tudo certo?',
-          is_client: false,
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          status: 'read'
-        },
-        {
-          id: 2,
-          message: 'Oi! Sim, está confirmado para amanhã às 14h?',
-          is_client: true,
-          timestamp: new Date(Date.now() - 3000000).toISOString(),
-          status: 'read'
-        },
-        {
-          id: 3,
-          message: 'Perfeito! Confirmado. Qualquer coisa, estou à disposição.',
-          is_client: false,
-          timestamp: new Date(Date.now() - 1800000).toISOString(),
-          status: 'delivered'
+      if (isPolling && response.data.length > 0) {
+        // Novas mensagens via polling
+        setMessages(prev => [...prev, ...response.data]);
+        const lastMsg = response.data[response.data.length - 1];
+        setLastMessageTime(lastMsg.created_at);
+        setTimeout(() => scrollToBottom(), 100);
+        
+        // Marcar mensagens do prestador como lidas
+        await apiClient.chat.markAsRead(id, true);
+      } else if (!isPolling) {
+        // Carregamento inicial
+        setMessages(response.data);
+        if (response.data.length > 0) {
+          const lastMsg = response.data[response.data.length - 1];
+          setLastMessageTime(lastMsg.created_at);
         }
-      ]);
+        setTimeout(() => scrollToBottom(), 100);
+        
+        // Marcar mensagens do prestador como lidas
+        await apiClient.chat.markAsRead(id, true);
+      }
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
     }
@@ -80,18 +82,11 @@ export default function ClienteChat() {
 
   const handleSend = async (message) => {
     try {
-      const newMessage = {
-        id: Date.now(),
-        message,
-        is_client: true,
-        timestamp: new Date().toISOString(),
-        status: 'sent'
-      };
+      const response = await apiClient.chat.sendMessage(id, message, true);
+      const newMessage = response.data;
       
       setMessages(prev => [...prev, newMessage]);
-      
-      // Endpoint fictício - implementar no backend
-      // await apiClient.post(`/chat/${id}`, { message });
+      setLastMessageTime(newMessage.created_at);
       
       setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
@@ -161,7 +156,7 @@ export default function ClienteChat() {
             key={msg.id}
             message={msg.message}
             isSent={msg.is_client}
-            timestamp={msg.timestamp}
+            timestamp={msg.created_at}
             status={msg.status}
           />
         ))}

@@ -55,6 +55,7 @@ const smsLogsRoutes = require('./routes/sms-logs');
 const analyticsRoutes = require('./routes/analytics');
 const landingRoutesModule = require('./routes/landing');
 const feedbacksRouter = require('./routes/feedbacks');
+const chatRouter = require('./routes/chat');
 
 app.use('/api/tenants', tenantsRoutes);
 app.use('/api/services', servicesRoutes);
@@ -65,6 +66,7 @@ app.use('/api/sms-logs', smsLogsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api', landingRoutesModule);
 app.use('/api/feedbacks', feedbacksRouter);
+app.use('/api/chat', chatRouter);
 
 app.get('/', (req, res) => {
   res.redirect('/landing/index.html');
