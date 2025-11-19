@@ -53,6 +53,14 @@ export default function PrestadorHome() {
       emoji: '📈',
     },
     {
+      title: 'Avaliações',
+      description: 'Feedback dos clientes',
+      icon: '⭐',
+      route: '/prestador/avaliacoes',
+      bgColor: '#f59e0b',
+      emoji: '💬',
+    },
+    {
       title: 'Configurações',
       description: 'Personalize cores e preferências',
       icon: '⚙️',

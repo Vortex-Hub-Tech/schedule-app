@@ -1,4 +1,3 @@
-
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
@@ -23,10 +22,10 @@ export default function MeusAgendamentos() {
   const loadData = async () => {
     const savedTenant = await TenantStorage.getTenant();
     setTenant(savedTenant);
-    
+
     const id = await DeviceStorage.getDeviceId();
     setDeviceId(id);
-    
+
     loadAppointments(id);
   };
 
@@ -217,7 +216,7 @@ export default function MeusAgendamentos() {
                         </Text>
                       </View>
                     </View>
-                    
+
                     <View className="flex-row items-center">
                       <View className="w-12 h-12 bg-white rounded-xl items-center justify-center mr-4">
                         <Text className="text-2xl">🕐</Text>
@@ -229,7 +228,7 @@ export default function MeusAgendamentos() {
                         </Text>
                       </View>
                     </View>
-                    
+
                     <View className="flex-row items-center">
                       <View className="w-12 h-12 bg-white rounded-xl items-center justify-center mr-4">
                         <Text className="text-2xl">👤</Text>
@@ -254,6 +253,25 @@ export default function MeusAgendamentos() {
                         Cancelar Agendamento
                       </Text>
                     </TouchableOpacity>
+                  )}
+                  
+                  {/* Rating Button */}
+                  {appointment.status === 'realizado' && (
+                    <View className="flex-row items-center gap-2">
+                      <View className="bg-green-100 px-3 py-1 rounded-full">
+                        <Text className="text-green-700 font-semibold text-xs">
+                          ✓ Realizado
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => router.push(`/cliente/avaliar/${appointment.id}`)}
+                        className="bg-yellow-100 px-3 py-1 rounded-full"
+                      >
+                        <Text className="text-yellow-700 font-semibold text-xs">
+                          ⭐ Avaliar
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   )}
                 </View>
               );

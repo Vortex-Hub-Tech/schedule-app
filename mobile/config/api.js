@@ -6,11 +6,11 @@ const getApiUrl = () => {
   if (Constants.expoConfig?.extra?.API_URL) {
     return Constants.expoConfig.extra.API_URL;
   }
-  
+
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
-  
+
   return 'http://localhost:5000/api';
 };
 
@@ -74,12 +74,13 @@ export default {
     sendCode: (phone) => api.post('/validation/send-code', { phone }),
     verifyCode: (phone, code) => api.post('/validation/verify-code', { phone, code }),
   },
-  owner: {
-    verifyOwner: (tenantId, deviceId) => axios.post(`${API_URL}/owner/verify-owner`, { tenantId, deviceId }),
-    claimOwnership: (tenantId, deviceId) => axios.post(`${API_URL}/owner/claim-ownership`, { tenantId, deviceId }),
-  },
-  analytics: {
-    getDashboard: () => api.get('/analytics/dashboard'),
-    getConversion: () => api.get('/analytics/conversion'),
+
+  feedbacks: {
+    getAll: (params) => api.get('/feedbacks', { params }),
+    getByAppointment: (appointmentId) => api.get(`/feedbacks/appointment/${appointmentId}`),
+    getStats: () => api.get('/feedbacks/stats'),
+    create: (data) => api.post('/feedbacks', data),
+    update: (id, data) => api.patch(`/feedbacks/${id}`, data),
+    delete: (id) => api.delete(`/feedbacks/${id}`),
   },
 };

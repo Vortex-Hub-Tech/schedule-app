@@ -42,9 +42,10 @@ export default function PerfilPrestador() {
 
   const loadStats = async () => {
     try {
-      const [appointmentsResponse, servicesResponse] = await Promise.all([
+      const [appointmentsResponse, servicesResponse, feedbackStats] = await Promise.all([
         apiClient.appointments.getAll(),
         apiClient.services.getAll(),
+        apiClient.feedbacks.getStats(),
       ]);
 
       const appointments = appointmentsResponse.data;
@@ -79,7 +80,8 @@ export default function PerfilPrestador() {
         agendamentosRealizados,
         totalServicos,
         receitaMensal,
-        avaliacaoMedia: 4.8, // Pode ser calculado quando houver sistema de avaliações
+        avaliacaoMedia: parseFloat(feedbackStats.data?.average_rating || 0),
+        totalAvaliacoes: parseInt(feedbackStats.data?.total_reviews || 0),
       });
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
@@ -156,9 +158,9 @@ export default function PerfilPrestador() {
               <StatsCard
                 icon="⭐"
                 label="Avaliação"
-                value={stats.avaliacaoMedia.toFixed(1)}
+                value={stats.avaliacaoMedia > 0 ? stats.avaliacaoMedia.toFixed(1) : '-'}
                 gradient={['#f59e0b', '#fbbf24']}
-                description={`${stats.agendamentosRealizados} atendimentos`}
+                description={`${stats.totalAvaliacoes} avaliações`}
               />
             </View>
             <View className="flex-1 min-w-[45%]">
