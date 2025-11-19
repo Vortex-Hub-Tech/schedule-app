@@ -1,7 +1,15 @@
+import { useState } from 'react';
 import { Stack } from 'expo-router';
 import '../global.css';
+import AppSplashScreen from '../components/SplashScreen';
 
 export default function Layout() {
+  const [isReady, setIsReady] = useState(false);
+
+  if (!isReady) {
+    return <AppSplashScreen onReady={() => setIsReady(true)} />;
+  }
+
   return (
     <Stack
       screenOptions={{
