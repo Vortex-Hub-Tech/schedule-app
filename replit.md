@@ -53,9 +53,10 @@ App mobile (React Native/Expo) para agendamento de serviços com dois modos:
   - Criado componente AppSplashScreen com design moderno
   - Gradiente azul profissional alinhado com a identidade visual
   - Animações suaves de fade-in e scale usando useRef para estabilidade
+  - Estilos nativos com StyleSheet para máxima compatibilidade
   - Nome do app "AgendaFácil" com ícone de calendário
   - Indicador de carregamento animado
-  - Duração de 2 segundos antes de exibir o app principal
+  - Duração de 3 segundos para garantir visibilidade
 
 - 2025-11-13: **Migração completa de Z-API para NitroSMS**
   - Substituída integração Z-API (WhatsApp) por NitroSMS
