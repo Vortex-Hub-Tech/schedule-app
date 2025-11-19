@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, Linking, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import apiClient from '../../config/api';
 import { TenantStorage } from '../../utils/storage';
+import { FontAwesome } from '@expo/vector-icons';
 
 export default function AgendamentosPrestador() {
   const router = useRouter();
@@ -112,6 +113,25 @@ export default function AgendamentosPrestador() {
     { value: 'cancelado', label: 'Cancelados' },
   ];
 
+  const openWhatsApp = (appointment) => {
+    const phone = appointment.client_phone;
+    if (!phone) {
+      return Alert.alert('Erro', 'Telefone não disponível.');
+    }
+
+    const cleaned = phone.replace(/\D/g, '');
+
+    const message = `Olá ${appointment.client_name}! Estou passando para confirmar seu agendamento de *${appointment.service_name}* no dia ${format(parseISO(appointment.appointment_date), "dd 'de' MMMM", { locale: ptBR })} às ${appointment.appointment_time.substring(0, 5)}. Tudo certo? 😊`;
+
+    const url = `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
+
+    try {
+      Linking.openURL(url);
+    } catch (err) {
+      Alert.alert('Erro', 'Não foi possível abrir o WhatsApp.');
+    }
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -200,6 +220,21 @@ export default function AgendamentosPrestador() {
                       </View>
                     </View>
                   </View>
+
+                  {appointment.status !== 'cancelado' && appointment.status !== 'realizado' && (
+                    <TouchableOpacity
+                      onPress={() => openWhatsApp(appointment)}
+                      className="bg-green-500 py-3 rounded-xl mb-3 active:opacity-80 flex-row items-center justify-center"
+                    >
+                      <FontAwesome
+                        name="whatsapp"
+                        size={28}
+                        color="#ffffff"
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text className="text-white font-bold">Chamar no WhatsApp</Text>
+                    </TouchableOpacity>
+                  )}
 
                   {/* Informações do Agendamento */}
                   <View className="bg-gray-50 rounded-xl p-4 mb-4">

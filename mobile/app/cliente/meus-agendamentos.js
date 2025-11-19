@@ -189,9 +189,8 @@ export default function MeusAgendamentos() {
                 >
                   {/* Status Badge */}
                   <View 
-                    style={{ backgroundColor: statusInfo.bg }} 
+                    style={{ backgroundColor: statusInfo.bg, borderColor: statusInfo.borderColor }} 
                     className="self-start px-4 py-2 rounded-full mb-4 border"
-                    style={{ backgroundColor: statusInfo.bg, borderColor: statusInfo.borderColor }}
                   >
                     <Text style={{ color: statusInfo.color }} className="text-xs font-bold tracking-wide">
                       {statusInfo.icon} {statusInfo.text.toUpperCase()}
@@ -245,17 +244,6 @@ export default function MeusAgendamentos() {
                   {/* Action Buttons */}
                   {appointment.status === 'pendente' && (
                     <View className="space-y-3">
-                      <TouchableOpacity
-                        style={{ backgroundColor: colors.primary }}
-                        className="py-4 rounded-2xl active:opacity-70 flex-row items-center justify-center"
-                        activeOpacity={0.8}
-                        onPress={() => router.push(`/cliente/chat/${appointment.id}`)}
-                      >
-                        <Text className="text-white text-xl mr-2">💬</Text>
-                        <Text className="text-white text-center font-bold text-base">
-                          Chat com Prestador
-                        </Text>
-                      </TouchableOpacity>
                       <TouchableOpacity
                         className="bg-red-50 border-2 border-red-200 py-4 rounded-2xl active:opacity-70"
                         activeOpacity={0.8}
