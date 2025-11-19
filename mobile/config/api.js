@@ -83,4 +83,8 @@ export default {
     update: (id, data) => api.patch(`/feedbacks/${id}`, data),
     delete: (id) => api.delete(`/feedbacks/${id}`),
   },
+  owner: {
+    verifyOwner: (tenantId, deviceId) => api.post('/owner/verify-owner', { tenantId, deviceId }),
+    claimOwnership: (tenantId, deviceId) => api.post('/owner/claim-ownership', { tenantId, deviceId }),
+  },
 };
