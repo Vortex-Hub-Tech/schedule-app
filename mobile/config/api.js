@@ -79,7 +79,10 @@ export default {
     create: async (data) => api.post('/feedbacks', data),
     getByTenant: async () => api.get('/feedbacks'),
   },
-
+  owner: {
+    verifyOwner: (tenantId, deviceId) => api.post('/owner/verify-owner', { tenantId, deviceId }),
+    claimOwnership: (tenantId, deviceId) => api.post('/owner/claim-ownership', { tenantId, deviceId }),
+  },
   chat: {
     getMessages: async (appointmentId, since = null) => {
       const params = since ? `?since=${since}` : '';
