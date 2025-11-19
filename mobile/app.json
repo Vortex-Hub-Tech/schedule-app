@@ -1,16 +1,18 @@
 {
   "expo": {
-    "name": "Agendamento de Serviços",
+    "name": "AgendaFacil",
     "slug": "agendamento-servicos",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "icon": "./assets/images/icon.png",
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.agendamento.servicos"
+      "bundleIdentifier": "com.agendamento.servicos",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.agendamento.servicos"
@@ -21,11 +23,31 @@
         {
           "origin": false
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#c470d1",
+          "image": "./assets/images/splash-icon.png",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
       ]
     ],
     "scheme": "agendamento",
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "53e8888c-f828-41a7-8fd3-189f68b584c3"
+      }
     }
   }
 }
