@@ -2,9 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { pool } = require('./db');
-
+const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4999;
 
 app.use(cors());
 
@@ -12,9 +12,8 @@ const { handleAsaasWebhook } = require('./routes/landing');
 app.post('/api/webhook/asaas', express.json(), handleAsaasWebhook);
 
 app.use(express.json());
-app.use('/landing', express.static('public/landing'));
+app.use('/', express.static('public/landing'));
 app.use(express.static('public'));
-
 // Testar conexão com o banco
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
@@ -69,7 +68,7 @@ app.use('/api/feedbacks', feedbacksRouter);
 app.use('/api/chat', chatRouter);
 
 app.get('/', (req, res) => {
-  res.redirect('/landing/index.html');
+  res.sendFile(path.join(__dirname, 'public', 'landing', 'index.html'));
 });
 
 const { startReminderJob } = require('./jobs/reminders');
