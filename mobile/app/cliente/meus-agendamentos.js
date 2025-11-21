@@ -23,7 +23,7 @@ export default function MeusAgendamentos() {
     const savedTenant = await TenantStorage.getTenant();
     setTenant(savedTenant);
 
-    const id = await DeviceStorage.getDeviceId();
+    const id = await DeviceStorage.getLocalDeviceId();
     setDeviceId(id);
 
     loadAppointments(id);

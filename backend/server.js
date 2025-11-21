@@ -67,7 +67,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api', landingRoutesModule);
 app.use('/api/feedbacks', feedbacksRouter);
 app.use('/api/chat', chatRouter);
-app.use("/devices", devicesRoutes);
+app.use("/api/devices", devicesRoutes);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing', 'index.html'));
