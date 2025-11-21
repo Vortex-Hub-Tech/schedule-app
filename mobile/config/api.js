@@ -101,4 +101,8 @@ export default {
     markAsRead: async (appointmentId, isClient) => 
       api.patch(`/chat/${appointmentId}/read`, { is_client: isClient }),
   },
+  device: {
+    registerOrResolve: (payload) =>
+      api.post('/devices/register-or-resolve', payload),
+  },
 };

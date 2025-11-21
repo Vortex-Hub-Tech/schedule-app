@@ -84,13 +84,16 @@ export const DeviceStorage = {
     const localDeviceId = await this.getLocalDeviceId();
     const fingerprint = await getFingerprint();
 
-    const response = await apiClient.post('/devices/register-or-resolve', {
+    // Chama o módulo device correto do apiClient
+    const response = await apiClient.device.registerOrResolve({
       localDeviceId,
       tenantId,
       fingerprint,
     });
 
     const canonicalId = response.data.deviceId;
+
+    // Salva ID canônico persistente
     await AsyncStorage.setItem(KEYS.CANONICAL_DEVICE_ID, canonicalId);
 
     return canonicalId;
