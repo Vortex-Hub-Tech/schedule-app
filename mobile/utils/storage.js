@@ -1,223 +1,130 @@
+// utils/storage.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import * as Device from 'expo-device';
+import * as Application from 'expo-application';
 
 const KEYS = {
   TENANT: '@agendamento:tenant',
   TENANT_DATA: '@agendamento:tenant_data',
   SERVICES_CACHE: '@agendamento:services_cache',
   APPOINTMENTS_CACHE: '@agendamento:appointments_cache',
+
   DEVICE_ID: '@agendamento:device_id',
+  DEVICE_ID_SECURE: '@agendamento:secure_device_id',
+  CANONICAL_DEVICE_ID: '@agendamento:canonical_device_id',
+
   USER_SESSION: '@agendamento:user_session',
   USER_TYPE: '@agendamento:user_type',
 };
 
-function generateDeviceId() {
-  return `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+function generateLocalId() {
+  return `device_${Date.now()}_${Math.random().toString(36).substring(2,15)}`;
 }
 
-export const TenantStorage = {
-  async setTenant(tenant) {
-    try {
-      await AsyncStorage.setItem(KEYS.TENANT, JSON.stringify(tenant));
-      return true;
-    } catch (error) {
-      console.error('Erro ao salvar tenant:', error);
-      return false;
-    }
-  },
-
-  async getTenant() {
-    try {
-      const tenant = await AsyncStorage.getItem(KEYS.TENANT);
-      return tenant ? JSON.parse(tenant) : null;
-    } catch (error) {
-      console.error('Erro ao carregar tenant:', error);
-      return null;
-    }
-  },
-
-  async clearTenant() {
-    try {
-      await AsyncStorage.removeItem(KEYS.TENANT);
-      await AsyncStorage.removeItem(KEYS.TENANT_DATA);
-      await this.clearCache();
-      return true;
-    } catch (error) {
-      console.error('Erro ao limpar tenant:', error);
-      return false;
-    }
-  },
-
-  async setTenantData(data) {
-    try {
-      await AsyncStorage.setItem(KEYS.TENANT_DATA, JSON.stringify(data));
-      return true;
-    } catch (error) {
-      console.error('Erro ao salvar dados do tenant:', error);
-      return false;
-    }
-  },
-
-  async getTenantData() {
-    try {
-      const data = await AsyncStorage.getItem(KEYS.TENANT_DATA);
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error('Erro ao carregar dados do tenant:', error);
-      return null;
-    }
-  },
-
-  async cacheServices(services) {
-    try {
-      const tenant = await this.getTenant();
-      if (!tenant) return false;
-      
-      await AsyncStorage.setItem(
-        `${KEYS.SERVICES_CACHE}_${tenant.id}`,
-        JSON.stringify({
-          data: services,
-          timestamp: Date.now(),
-        })
-      );
-      return true;
-    } catch (error) {
-      console.error('Erro ao cachear serviços:', error);
-      return false;
-    }
-  },
-
-  async getCachedServices() {
-    try {
-      const tenant = await this.getTenant();
-      if (!tenant) return null;
-      
-      const cached = await AsyncStorage.getItem(`${KEYS.SERVICES_CACHE}_${tenant.id}`);
-      if (!cached) return null;
-      
-      const { data, timestamp } = JSON.parse(cached);
-      const isStale = Date.now() - timestamp > 3600000;
-      
-      return { data, isStale };
-    } catch (error) {
-      console.error('Erro ao carregar serviços cacheados:', error);
-      return null;
-    }
-  },
-
-  async cacheAppointments(appointments) {
-    try {
-      const tenant = await this.getTenant();
-      if (!tenant) return false;
-      
-      await AsyncStorage.setItem(
-        `${KEYS.APPOINTMENTS_CACHE}_${tenant.id}`,
-        JSON.stringify({
-          data: appointments,
-          timestamp: Date.now(),
-        })
-      );
-      return true;
-    } catch (error) {
-      console.error('Erro ao cachear agendamentos:', error);
-      return false;
-    }
-  },
-
-  async getCachedAppointments() {
-    try {
-      const tenant = await this.getTenant();
-      if (!tenant) return null;
-      
-      const cached = await AsyncStorage.getItem(`${KEYS.APPOINTMENTS_CACHE}_${tenant.id}`);
-      if (!cached) return null;
-      
-      const { data, timestamp } = JSON.parse(cached);
-      const isStale = Date.now() - timestamp > 1800000;
-      
-      return { data, isStale };
-    } catch (error) {
-      console.error('Erro ao carregar agendamentos cacheados:', error);
-      return null;
-    }
-  },
-
-  async clearCache() {
-    try {
-      const tenant = await this.getTenant();
-      if (!tenant) return true;
-      
-      await AsyncStorage.removeItem(`${KEYS.SERVICES_CACHE}_${tenant.id}`);
-      await AsyncStorage.removeItem(`${KEYS.APPOINTMENTS_CACHE}_${tenant.id}`);
-      return true;
-    } catch (error) {
-      console.error('Erro ao limpar cache:', error);
-      return false;
-    }
-  },
-};
+async function getFingerprint() {
+  return {
+    brand: Device.brand,
+    modelName: Device.modelName,
+    osName: Device.osName,
+    osVersion: Device.osVersion,
+    manufacturer: Device.manufacturer,
+    deviceType: Device.deviceType,
+    appVersion: Application.nativeApplicationVersion,
+    buildNumber: Application.nativeBuildVersion,
+  };
+}
 
 export const DeviceStorage = {
-  async getDeviceId() {
-    try {
-      let deviceId = await AsyncStorage.getItem(KEYS.DEVICE_ID);
-      if (!deviceId) {
-        deviceId = generateDeviceId();
-        await AsyncStorage.setItem(KEYS.DEVICE_ID, deviceId);
-      }
-      return deviceId;
-    } catch (error) {
-      console.error('Erro ao obter deviceId:', error);
-      return null;
+  async getLocalDeviceId() {
+    let secure = await SecureStore.getItemAsync(KEYS.DEVICE_ID_SECURE);
+    let asyncId = await AsyncStorage.getItem(KEYS.DEVICE_ID);
+
+    if (secure && asyncId) {
+      if (secure !== asyncId) await AsyncStorage.setItem(KEYS.DEVICE_ID, secure);
+      return secure;
     }
+
+    if (secure && !asyncId) {
+      await AsyncStorage.setItem(KEYS.DEVICE_ID, secure);
+      return secure;
+    }
+
+    if (!secure && asyncId) {
+      await SecureStore.setItemAsync(KEYS.DEVICE_ID_SECURE, asyncId);
+      return asyncId;
+    }
+
+    const newId = generateLocalId();
+    await SecureStore.setItemAsync(KEYS.DEVICE_ID_SECURE, newId);
+    await AsyncStorage.setItem(KEYS.DEVICE_ID, newId);
+    return newId;
+  },
+
+  async ensureSyncedDeviceId(apiClient, tenantId) {
+    const localDeviceId = await this.getLocalDeviceId();
+    const fingerprint = await getFingerprint();
+
+    const response = await apiClient.post("/devices/register-or-resolve", {
+      localDeviceId,
+      tenantId,
+      fingerprint,
+    });
+
+    const canonicalId = response.data.deviceId;
+    await AsyncStorage.setItem(KEYS.CANONICAL_DEVICE_ID, canonicalId);
+
+    return canonicalId;
+  },
+
+  async getCanonicalDeviceId() {
+    return await AsyncStorage.getItem(KEYS.CANONICAL_DEVICE_ID);
   },
 
   async setUserSession(sessionData) {
-    try {
-      await AsyncStorage.setItem(KEYS.USER_SESSION, JSON.stringify(sessionData));
-      return true;
-    } catch (error) {
-      console.error('Erro ao salvar sessão:', error);
-      return false;
-    }
+    await AsyncStorage.setItem(KEYS.USER_SESSION, JSON.stringify(sessionData));
   },
 
   async getUserSession() {
-    try {
-      const session = await AsyncStorage.getItem(KEYS.USER_SESSION);
-      return session ? JSON.parse(session) : null;
-    } catch (error) {
-      console.error('Erro ao carregar sessão:', error);
-      return null;
-    }
+    const session = await AsyncStorage.getItem(KEYS.USER_SESSION);
+    return session ? JSON.parse(session) : null;
   },
 
-  async setUserType(userType) {
-    try {
-      await AsyncStorage.setItem(KEYS.USER_TYPE, userType);
-      return true;
-    } catch (error) {
-      console.error('Erro ao salvar tipo de usuário:', error);
-      return false;
-    }
+  async setUserType(type) {
+    await AsyncStorage.setItem(KEYS.USER_TYPE, type);
   },
 
   async getUserType() {
-    try {
-      return await AsyncStorage.getItem(KEYS.USER_TYPE);
-    } catch (error) {
-      console.error('Erro ao carregar tipo de usuário:', error);
-      return null;
-    }
+    return await AsyncStorage.getItem(KEYS.USER_TYPE);
   },
 
   async clearUserSession() {
-    try {
-      await AsyncStorage.removeItem(KEYS.USER_SESSION);
-      await AsyncStorage.removeItem(KEYS.USER_TYPE);
-      return true;
-    } catch (error) {
-      console.error('Erro ao limpar sessão:', error);
-      return false;
-    }
+    await AsyncStorage.removeItem(KEYS.USER_SESSION);
+    await AsyncStorage.removeItem(KEYS.USER_TYPE);
+  },
+};
+
+export const TenantStorage = {
+  async setTenant(tenant) {
+    await AsyncStorage.setItem(KEYS.TENANT, JSON.stringify(tenant));
+  },
+
+  async getTenant() {
+    const tenant = await AsyncStorage.getItem(KEYS.TENANT);
+    return tenant ? JSON.parse(tenant) : null;
+  },
+
+  async setTenantData(data) {
+    await AsyncStorage.setItem(KEYS.TENANT_DATA, JSON.stringify(data));
+  },
+
+  async getTenantData() {
+    const data = await AsyncStorage.getItem(KEYS.TENANT_DATA);
+    return data ? JSON.parse(data) : null;
+  },
+
+  async clearTenant() {
+    await AsyncStorage.removeItem(KEYS.TENANT);
+    await AsyncStorage.removeItem(KEYS.TENANT_DATA);
   },
 };

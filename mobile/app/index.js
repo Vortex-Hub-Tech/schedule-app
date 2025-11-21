@@ -15,23 +15,20 @@ export default function Home() {
 
   const initializeApp = async () => {
     try {
-      // Carrega dados da tenant
       await loadTenantData();
 
-      // Obtém device_id do dispositivo
-      const deviceId = await DeviceStorage.getDeviceId();
+      const deviceId = await DeviceStorage.ensureSyncedDeviceId(
+        apiClient,
+        TENANT_CONFIG.TENANT_ID
+      );
 
-      console.log('Device ID:', deviceId);
-      // Verifica se é proprietário
       const ownerCheck = await apiClient.owner.verifyOwner(
         TENANT_CONFIG.TENANT_ID,
         deviceId
       );
 
-      // Define tipo de usuário baseado na verificação
       const userType = ownerCheck.data.isOwner ? 'prestador' : 'cliente';
 
-      // Salva tipo de usuário
       await DeviceStorage.setUserType(userType);
       await DeviceStorage.setUserSession({
         deviceId,
@@ -40,32 +37,27 @@ export default function Home() {
         createdAt: new Date().toISOString(),
       });
 
-      // Redireciona para a tela apropriada
-      setLoading(false);
       router.replace(userType === 'cliente' ? '/cliente' : '/prestador');
     } catch (error) {
       console.error('Erro ao inicializar app:', error);
-      setLoading(false);
-      // Em caso de erro, assume como cliente
       router.replace('/cliente');
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadTenantData = async () => {
-    try {
-      const savedTenant = await TenantStorage.getTenant();
+    const savedTenant = await TenantStorage.getTenant();
 
-      if (!savedTenant || savedTenant.id !== TENANT_CONFIG.TENANT_ID) {
-        const response = await apiClient.tenants.getById(TENANT_CONFIG.TENANT_ID);
-        const tenantData = response.data;
-        await TenantStorage.setTenant(tenantData);
+    if (!savedTenant || savedTenant.id !== TENANT_CONFIG.TENANT_ID) {
+      const response = await apiClient.tenants.getById(TENANT_CONFIG.TENANT_ID);
+      await TenantStorage.setTenant(response.data);
 
-        const bootstrap = await apiClient.tenants.getBootstrap(TENANT_CONFIG.TENANT_ID);
+      const bootstrap = await apiClient.tenants.getBootstrap(TENANT_CONFIG.TENANT_ID);
+
+      if (bootstrap?.data && typeof bootstrap.data === 'object') {
         await TenantStorage.setTenantData(bootstrap.data);
       }
-    } catch (error) {
-      console.error('Erro ao carregar dados do tenant:', error);
-      throw error;
     }
   };
 

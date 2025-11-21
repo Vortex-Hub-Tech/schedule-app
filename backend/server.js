@@ -55,6 +55,7 @@ const analyticsRoutes = require('./routes/analytics');
 const landingRoutesModule = require('./routes/landing');
 const feedbacksRouter = require('./routes/feedbacks');
 const chatRouter = require('./routes/chat');
+const devicesRoutes = require('./routes/devices');
 
 app.use('/api/tenants', tenantsRoutes);
 app.use('/api/services', servicesRoutes);
@@ -66,6 +67,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api', landingRoutesModule);
 app.use('/api/feedbacks', feedbacksRouter);
 app.use('/api/chat', chatRouter);
+app.use("/devices", deviceRoutes);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing', 'index.html'));
