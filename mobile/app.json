@@ -6,7 +6,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/images/icon.png",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.agendamento.servicos",
@@ -35,7 +37,8 @@
           },
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "scheme": "agendamento",
     "experiments": {
