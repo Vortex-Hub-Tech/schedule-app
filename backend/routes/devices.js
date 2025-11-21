@@ -1,7 +1,6 @@
-// routes/devices.js
-import express from "express";
-import crypto from "crypto";
-import { pool } from "../db.js";
+const express = require("express");
+const crypto = require("crypto");
+const { pool } = require("../db");
 
 const router = express.Router();
 
@@ -106,4 +105,4 @@ router.post("/register-or-resolve", async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router
