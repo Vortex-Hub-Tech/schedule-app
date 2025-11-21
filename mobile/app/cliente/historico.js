@@ -25,7 +25,7 @@ export default function Historico() {
     const savedTenant = await TenantStorage.getTenant();
     setTenant(savedTenant);
     
-    const id = await DeviceStorage.getLocalDeviceId();
+    const id = await DeviceStorage.getCanonicalDeviceId();
     setDeviceId(id);
     
     loadAppointments(id);

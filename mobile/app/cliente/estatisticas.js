@@ -27,7 +27,7 @@ export default function Estatisticas() {
       const savedTenant = await TenantStorage.getTenant();
       setTenant(savedTenant);
 
-      const deviceId = await DeviceStorage.getLocalDeviceId();
+      const deviceId = await DeviceStorage.getCanonicalDeviceId();
       const response = await apiClient.appointments.getAll({ deviceId });
       const appointments = response.data;
 
