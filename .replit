@@ -28,8 +28,16 @@ waitForPort = 5000
 outputType = "webview"
 
 [[ports]]
+localPort = 4999
+externalPort = 3000
+
+[[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 33791
+externalPort = 3001
 
 [nix]
 packages = ["openssh", "vim"]
