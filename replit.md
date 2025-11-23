@@ -22,12 +22,16 @@ App mobile (React Native/Expo) para agendamento de serviços com dois modos:
 - Agendamento com datetime picker
 - Validação por código via SMS (NitroSMS)
 - Tela "Meus Agendamentos" com cancelamento
+- Sistema de avaliações com moderação automática
+- Avaliações aprovadas aparecem instantaneamente
 
 ### Prestador
 - Cadastro/edição/remoção de serviços
 - Visualização de agendamentos
 - Marcar status (pendente/realizado/cancelado)
 - Exportação de dados
+- Moderação de avaliações (aprovar/rejeitar avaliações pendentes)
+- Estatísticas de moderação automática
 
 ## Ambiente de Desenvolvimento
 - Node.js 20
@@ -48,6 +52,18 @@ App mobile (React Native/Expo) para agendamento de serviços com dois modos:
 4. Próximas aberturas redirecionam automaticamente para a área correta
 
 ## Últimas Alterações
+- 2025-11-23: **Sistema de Moderação Automática de Avaliações**
+  - **Moderação Automática**: Análise inteligente de avaliações para detectar conteúdo inadequado
+  - **Detecção de Conteúdo**: Palavras ofensivas, spam, URLs, padrões suspeitos
+  - **Níveis de Severidade**: Sistema classifica problemas em low/medium/high
+  - **Aprovação Automática**: Avaliações limpas são aprovadas instantaneamente
+  - **Fila de Moderação**: Avaliações problemáticas vão para revisão manual
+  - **Endpoints de Moderação**: Aprovar, rejeitar e reverter decisões manualmente
+  - **Estatísticas**: Dashboard de moderação com métricas completas
+  - **Segurança**: Proteção contra edição de avaliações para inserir conteúdo inadequado
+  - **Documentação Completa**: Guia detalhado em `backend/MODERACAO.md`
+  - **Campos no Banco**: moderation_status, moderation_reason, moderated_at, moderated_by, auto_moderated
+
 - 2025-11-19: **Funcionalidades Profissionais Implementadas**
   - **Componentes UI Reutilizáveis**: SkeletonLoader, StarRating, FavoriteButton, StatusBadge, StatsCard, QuickAction
   - **Tela Inicial Redesenhada**: Quick Actions para acesso rápido (Agendamentos, Estatísticas, Histórico, Favoritos)
