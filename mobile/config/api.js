@@ -105,4 +105,8 @@ export default {
     registerOrResolve: (payload) =>
       api.post('/devices/register-or-resolve', payload),
   },
+  pushTokens: {
+    register: (payload) =>
+      api.post('/push-tokens/register', payload),
+  },
 };

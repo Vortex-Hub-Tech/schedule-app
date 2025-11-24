@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { api } from '../config/api';
+import apiClient from '../config/api';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -39,7 +39,7 @@ export async function registerForPushNotificationsAsync(deviceId, userType, tena
     
     console.log('Expo Push Token:', token);
 
-    await api.post('/push-tokens/register', {
+    await apiClient.pushTokens.register({
       device_id: deviceId,
       expo_push_token: token,
       user_type: userType,
