@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
 const { validateTenant } = require('../middleware/tenant');
+const { checkAppointmentLimit } = require('../middleware/planLimits');
 const nitroSMS = require('../services/nitrosms');
 const { sendNotificationToOwner, sendNotificationToClient } = require('../services/pushNotifications');
 
@@ -61,7 +62,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', checkAppointmentLimit, async (req, res) => {
   try {
     const { service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id } = req.body;
     

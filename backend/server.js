@@ -57,6 +57,7 @@ const feedbacksRouter = require('./routes/feedbacks');
 const chatRouter = require('./routes/chat');
 const devicesRoutes = require('./routes/devices');
 const pushTokensRoutes = require('./routes/push-tokens');
+const plansRoutes = require('./routes/plans');
 
 app.use('/api/tenants', tenantsRoutes);
 app.use('/api/services', servicesRoutes);
@@ -70,6 +71,7 @@ app.use('/api/feedbacks', feedbacksRouter);
 app.use('/api/chat', chatRouter);
 app.use("/api/devices", devicesRoutes);
 app.use('/api/push-tokens', pushTokensRoutes);
+app.use('/api/plans', plansRoutes);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing', 'index.html'));
