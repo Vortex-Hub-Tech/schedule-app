@@ -1,15 +1,20 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { registerForPushNotificationsAsync } from '../../utils/pushNotifications';
-import * as Device from 'expo-device';
-import { TENANT_ID } from '../../config/tenant';
+import { DeviceStorage } from '../../utils/storage';
 
 export default function PrestadorLayout() {
   useEffect(() => {
     const setupPushNotifications = async () => {
       try {
-        const deviceId = await Device.getDeviceIdAsync();
-        await registerForPushNotificationsAsync(deviceId, 'owner', TENANT_ID);
+        const session = await DeviceStorage.getUserSession();
+        if (session && session.deviceId && session.tenantId) {
+          await registerForPushNotificationsAsync(
+            session.deviceId, 
+            'owner', 
+            session.tenantId
+          );
+        }
       } catch (error) {
         console.error('Erro ao configurar notificações:', error);
       }
