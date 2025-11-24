@@ -17,7 +17,20 @@
       }
     },
     "android": {
-      "package": "com.agendamento.servicos"
+      "package": "com.agendamento.servicos",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#c470d1"
+      },
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ]
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#c470d1",
+      "androidMode": "default",
+      "androidCollapsedTitle": "AgendaFácil"
     },
     "plugins": [
       [
@@ -38,7 +51,15 @@
           "imageWidth": 200
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#c470d1",
+          "sounds": []
+        }
+      ]
     ],
     "scheme": "agendamento",
     "experiments": {
