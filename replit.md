@@ -52,6 +52,18 @@ App mobile (React Native/Expo) para agendamento de serviços com dois modos:
 4. Próximas aberturas redirecionam automaticamente para a área correta
 
 ## Últimas Alterações
+- 2025-11-24: **Sistema de Push Notifications com Expo**
+  - **Notificações em Tempo Real**: Push notifications nativas para iOS e Android
+  - **Notificação ao Prestador**: Recebe notificação quando cliente cria novo agendamento
+  - **Notificação ao Cliente**: Recebe notificação quando prestador marca agendamento como realizado
+  - **Tabela push_tokens**: Armazena tokens Expo por device_id e tenant_id
+  - **Serviço Backend**: `backend/services/pushNotifications.js` usando expo-server-sdk
+  - **Rota de Registro**: `POST /api/push-tokens/register` para registrar tokens
+  - **Configuração Automática**: Tokens registrados automaticamente ao abrir o app
+  - **Handlers de Notificação**: Navegação automática ao clicar em notificação
+  - **Permissões Android**: Configurado android.permission.POST_NOTIFICATIONS
+  - **Produção**: Configurado com projectId do Expo para builds de produção
+
 - 2025-11-23: **Sistema de Moderação Automática de Avaliações**
   - **Moderação Automática**: Análise inteligente de avaliações para detectar conteúdo inadequado
   - **Detecção de Conteúdo**: Palavras ofensivas, spam, URLs, padrões suspeitos
@@ -130,3 +142,48 @@ VALUES
 - `POST /api/validation/verify-code` - Valida código
 - `GET /api/sms-logs` - Lista todos os logs de SMS do tenant
 - `GET /api/sms-logs/stats` - Estatísticas de envios (sucesso/falha)
+
+## Sistema de Push Notifications
+
+### Arquitetura
+O sistema utiliza **Expo Push Notifications** para enviar notificações nativas em tempo real.
+
+### Fluxo de Notificações
+
+#### Cliente cria agendamento:
+1. Cliente seleciona serviço e agenda
+2. Backend salva agendamento no banco
+3. Backend busca tokens Expo do prestador (por tenant_id)
+4. Envia push notification ao prestador com detalhes do agendamento
+
+#### Prestador marca como realizado:
+1. Prestador marca agendamento como "realizado"
+2. Backend atualiza status no banco
+3. Backend envia SMS de confirmação (NitroSMS)
+4. Backend busca token Expo do cliente (por device_id)
+5. Envia push notification ao cliente confirmando agendamento
+
+### Endpoints Push Notifications
+- `POST /api/push-tokens/register` - Registra/atualiza Expo Push Token
+- `DELETE /api/push-tokens/unregister/:device_id` - Remove token
+
+### Tabela push_tokens
+```sql
+CREATE TABLE push_tokens (
+  id SERIAL PRIMARY KEY,
+  device_id VARCHAR(255) UNIQUE NOT NULL,
+  expo_push_token TEXT NOT NULL,
+  tenant_id VARCHAR(255),
+  user_type VARCHAR(20) NOT NULL, -- 'client' ou 'owner'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Configuração Mobile
+- **Permissões**: Configuradas automaticamente no app.json
+- **Registro**: Tokens registrados ao abrir área de cliente ou prestador
+- **Project ID**: `53e8888c-f828-41a7-8fd3-189f68b584c3` (configurado em app.json)
+- **Handlers**: Navegação automática ao clicar em notificação
+  - Notificação de novo agendamento → `/prestador/agendamentos`
+  - Notificação de confirmação → `/cliente/meus-agendamentos`

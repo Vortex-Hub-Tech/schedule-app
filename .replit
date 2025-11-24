@@ -35,6 +35,10 @@ externalPort = 3000
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 39079
+externalPort = 3001
+
 [nix]
 packages = ["openssh", "vim"]
 channel = "stable-25_05"
