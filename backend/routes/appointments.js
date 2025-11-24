@@ -3,6 +3,7 @@ const router = express.Router();
 const { pool } = require('../db');
 const { validateTenant } = require('../middleware/tenant');
 const nitroSMS = require('../services/nitrosms');
+const { sendNotificationToOwner, sendNotificationToClient } = require('../services/pushNotifications');
 
 router.use(validateTenant);
 
@@ -65,11 +66,45 @@ router.post('/', async (req, res) => {
     const { service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id } = req.body;
     
     const result = await pool.query(
-      'INSERT INTO appointments (tenant_id, service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      `INSERT INTO appointments (tenant_id, service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+       RETURNING *`,
       [req.tenantId, service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id]
     );
-    res.status(201).json(result.rows[0]);
+
+    const appointment = result.rows[0];
+
+    const serviceResult = await pool.query(
+      'SELECT name FROM services WHERE id = $1 AND tenant_id = $2',
+      [service_id, req.tenantId]
+    );
+    
+    const serviceName = serviceResult.rows[0]?.name || 'Serviço';
+    const appointmentDate = new Date(appointment_date).toLocaleDateString('pt-BR');
+    const appointmentTime = appointment_time.substring(0, 5);
+
+    try {
+      await sendNotificationToOwner(
+        req.tenantId,
+        'Novo Agendamento!',
+        `${client_name} agendou ${serviceName} para ${appointmentDate} às ${appointmentTime}`,
+        { 
+          type: 'new_appointment',
+          appointmentId: appointment.id,
+          clientName: client_name,
+          service: serviceName,
+          date: appointmentDate,
+          time: appointmentTime
+        }
+      );
+      console.log(`✅ Notificação push enviada ao prestador (tenant: ${req.tenantId})`);
+    } catch (error) {
+      console.error('❌ Erro ao enviar notificação push ao prestador:', error);
+    }
+
+    res.status(201).json(appointment);
   } catch (error) {
+    console.error('Erro ao criar agendamento:', error);
     res.status(500).json({ error: 'Erro ao criar agendamento' });
   }
 });
@@ -134,6 +169,26 @@ router.patch('/:id/status', async (req, res) => {
           console.log(`✅ Notificação de confirmação enviada para ${appointment.client_phone} (Log ID: ${smsResult.logId})`);
         } else {
           console.log(`⚠️ Não foi possível enviar notificação SMS: ${smsResult.error}`);
+        }
+
+        if (appointment.device_id) {
+          try {
+            await sendNotificationToClient(
+              appointment.device_id,
+              'Agendamento Confirmado!',
+              `Seu agendamento de ${appointment.service_name} foi confirmado para ${appointmentDate} às ${appointmentTime}`,
+              {
+                type: 'appointment_confirmed',
+                appointmentId: appointment.id,
+                service: appointment.service_name,
+                date: appointmentDate,
+                time: appointmentTime
+              }
+            );
+            console.log(`✅ Notificação push enviada ao cliente (device: ${appointment.device_id})`);
+          } catch (error) {
+            console.error('❌ Erro ao enviar notificação push ao cliente:', error);
+          }
         }
       } catch (error) {
         console.error('❌ Erro ao enviar notificação via NitroSMS:', error.message);
