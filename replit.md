@@ -52,6 +52,18 @@ App mobile (React Native/Expo) para agendamento de serviços com dois modos:
 4. Próximas aberturas redirecionam automaticamente para a área correta
 
 ## Últimas Alterações
+- 2025-11-24: **Sistema de Planos de Assinatura**
+  - **3 Planos Disponíveis**: Starter (gratuito), Professional (R$ 97/mês), Enterprise (R$ 297/mês)
+  - **Starter**: 50 agendamentos/mês, 1 prestador, sem notificações SMS
+  - **Professional**: Agendamentos ilimitados, 3 prestadores, SMS, relatórios avançados, suporte prioritário
+  - **Enterprise**: Tudo ilimitado, multi-unidades, API personalizada, integrações customizadas, gerente dedicado, SLA
+  - **Enforcement de Limites**: Middleware verifica limites antes de criar agendamentos ou prestadores
+  - **Tela de Planos**: UI profissional mostrando planos, recursos, uso atual e barras de progresso
+  - **API de Planos**: Endpoints para listar, consultar plano atual, trocar plano e verificar limites
+  - **Tabelas**: `plans` (planos disponíveis) e `tenant_subscriptions` (assinaturas por tenant)
+  - **Upgrade/Downgrade**: Prestadores podem trocar de plano a qualquer momento
+  - **Sem Pagamentos Online**: Todos os planos SEM pagamento online (requisito explícito)
+
 - 2025-11-24: **Sistema de Push Notifications com Expo**
   - **Notificações em Tempo Real**: Push notifications nativas para iOS e Android
   - **Notificação ao Prestador**: Recebe notificação quando cliente cria novo agendamento
