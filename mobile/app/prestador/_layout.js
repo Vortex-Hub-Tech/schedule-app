@@ -105,6 +105,13 @@ export default function PrestadorLayout() {
           headerShown: false,
         }} 
       />
+      <Stack.Screen 
+        name="planos" 
+        options={{ 
+          title: 'Planos',
+          headerShown: false,
+        }} 
+      />
     </Stack>
   );
 }

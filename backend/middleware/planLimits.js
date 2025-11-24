@@ -2,7 +2,29 @@ const { pool } = require('../db');
 
 async function getTenantSubscription(tenantId) {
   const result = await pool.query(`
-    SELECT ts.*, p.*
+    SELECT 
+      ts.id as subscription_id,
+      ts.tenant_id,
+      ts.plan_id,
+      ts.status as subscription_status,
+      ts.started_at,
+      ts.expires_at,
+      p.id as plan_id,
+      p.name as plan_name,
+      p.slug as plan_slug,
+      p.price as plan_price,
+      p.max_appointments_per_month,
+      p.max_providers,
+      p.has_sms_notifications,
+      p.has_push_notifications,
+      p.has_advanced_reports,
+      p.has_priority_support,
+      p.has_multi_units,
+      p.has_custom_api,
+      p.has_custom_integrations,
+      p.has_dedicated_manager,
+      p.has_sla,
+      p.description as plan_description
     FROM tenant_subscriptions ts
     JOIN plans p ON ts.plan_id = p.id
     WHERE ts.tenant_id = $1 AND ts.status = 'active'
@@ -15,7 +37,29 @@ async function getTenantSubscription(tenantId) {
     return starterPlan.rows[0];
   }
 
-  return result.rows[0];
+  const row = result.rows[0];
+  return {
+    id: row.plan_id,
+    name: row.plan_name,
+    slug: row.plan_slug,
+    price: row.plan_price,
+    max_appointments_per_month: row.max_appointments_per_month,
+    max_providers: row.max_providers,
+    has_sms_notifications: row.has_sms_notifications,
+    has_push_notifications: row.has_push_notifications,
+    has_advanced_reports: row.has_advanced_reports,
+    has_priority_support: row.has_priority_support,
+    has_multi_units: row.has_multi_units,
+    has_custom_api: row.has_custom_api,
+    has_custom_integrations: row.has_custom_integrations,
+    has_dedicated_manager: row.has_dedicated_manager,
+    has_sla: row.has_sla,
+    description: row.plan_description,
+    subscription_id: row.subscription_id,
+    subscription_status: row.subscription_status,
+    started_at: row.started_at,
+    expires_at: row.expires_at
+  };
 }
 
 async function checkAppointmentLimit(req, res, next) {
