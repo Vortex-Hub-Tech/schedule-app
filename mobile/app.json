@@ -30,7 +30,7 @@
       "icon": "./assets/images/icon.png",
       "color": "#c470d1",
       "androidMode": "default",
-      "androidCollapsedTitle": "AgendaFácil"
+      "androidCollapsedTitle": "📅 AgendaFácil"
     },
     "plugins": [
       [

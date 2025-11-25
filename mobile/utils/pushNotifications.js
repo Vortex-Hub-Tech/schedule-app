@@ -8,6 +8,7 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    priority: Notifications.AndroidNotificationPriority.MAX,
   }),
 });
 
@@ -53,10 +54,13 @@ export async function registerForPushNotificationsAsync(deviceId, userType, tena
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
+      name: 'AgendaFácil',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#c470d1',
+      sound: 'default',
+      enableVibrate: true,
+      showBadge: true,
     });
   }
 

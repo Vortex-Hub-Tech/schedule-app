@@ -12,10 +12,11 @@ async function sendPushNotification(expoPushToken, title, body, data = {}) {
   const message = {
     to: expoPushToken,
     sound: 'default',
-    title: title,
+    title: `📅 AgendaFácil - ${title}`,
     body: body,
     data: data,
     priority: 'high',
+    badge: 1,
   };
 
   try {
