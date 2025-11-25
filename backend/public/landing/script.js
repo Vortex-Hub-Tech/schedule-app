@@ -186,7 +186,7 @@ async function handlePaymentSubmit(e) {
             body: JSON.stringify({
                 amount: selectedAmount,
                 plan: selectedPlan,
-                tenantId: window.selectedTenantId,
+                companyName,
                 customer: {
                     name,
                     email,
