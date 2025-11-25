@@ -71,15 +71,6 @@ function selectPlan(plan, amount) {
         return;
     }
 
-    // Request tenant ID
-    const tenantId = prompt('Digite o ID do seu tenant (empresa):');
-    if (!tenantId || tenantId.trim() === '') {
-        showNotification('ID do tenant é obrigatório para continuar.', 'error');
-        return;
-    }
-
-    // Store tenant ID for payment
-    window.selectedTenantId = tenantId.trim();
     openPaymentModal();
 }
 
@@ -116,6 +107,10 @@ function showPaymentForm() {
                     <strong>Plano ${selectedPlan === 'professional' ? 'Professional' : 'Enterprise'}</strong><br>
                     R$ ${selectedAmount.toFixed(2)}/mês
                 </p>
+                <div class="form-group">
+                    <label>Nome da Empresa *</label>
+                    <input type="text" id="company-name" placeholder="Ex: Barbearia Central" required>
+                </div>
                 <div class="form-group">
                     <label>Nome Completo *</label>
                     <input type="text" id="customer-name" required>
@@ -162,13 +157,14 @@ function showPaymentForm() {
 async function handlePaymentSubmit(e) {
     e.preventDefault();
 
+    const companyName = document.getElementById('company-name')?.value;
     const name = document.getElementById('customer-name')?.value;
     const email = document.getElementById('customer-email')?.value;
     const cpfCnpj = document.getElementById('customer-cpf')?.value;
     const phone = document.getElementById('customer-phone')?.value;
     const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
 
-    if (!name || !email || !cpfCnpj || !phone) {
+    if (!companyName || !name || !email || !cpfCnpj || !phone) {
         showPaymentMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
         return;
     }
