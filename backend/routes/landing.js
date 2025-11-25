@@ -38,16 +38,48 @@ router.post('/customization-request', async (req, res) => {
 });
 
 router.post('/create-payment', async (req, res) => {
-    const { amount, plan, customer, paymentMethod } = req.body;
+    const { amount, plan, customer, paymentMethod, tenantId } = req.body;
 
-    if (!amount || !plan) {
-        return res.status(400).json({ error: 'Dados inválidos' });
+    if (!amount || !plan || !tenantId) {
+        return res.status(400).json({ error: 'Dados inválidos - tenantId é obrigatório' });
     }
 
     const billingType = paymentMethod || 'CREDIT_CARD';
 
     if (!asaasService.isConfigured()) {
         console.log('Asaas não configurado. Modo de demonstração.');
+        
+        // Get plan_id from database
+        const planResult = await pool.query(
+            'SELECT id FROM plans WHERE slug = $1',
+            [plan]
+        );
+
+        if (planResult.rows.length > 0) {
+            const planId = planResult.rows[0].id;
+            
+            // Create or update tenant subscription
+            const existingSubscription = await pool.query(
+                'SELECT id FROM tenant_subscriptions WHERE tenant_id = $1',
+                [tenantId]
+            );
+
+            if (existingSubscription.rows.length > 0) {
+                await pool.query(
+                    `UPDATE tenant_subscriptions 
+                     SET plan_id = $1, status = 'active', updated_at = CURRENT_TIMESTAMP
+                     WHERE tenant_id = $2`,
+                    [planId, tenantId]
+                );
+            } else {
+                await pool.query(
+                    `INSERT INTO tenant_subscriptions (tenant_id, plan_id, status, started_at)
+                     VALUES ($1, $2, 'active', CURRENT_TIMESTAMP)`,
+                    [tenantId, planId]
+                );
+            }
+        }
+
         return res.json({
             chargeId: 'demo_charge_' + Date.now(),
             invoiceUrl: '/success.html',
@@ -88,14 +120,38 @@ router.post('/create-payment', async (req, res) => {
             billingType: billingType
         });
 
-        const subscriptionQuery = `
-            INSERT INTO subscriptions 
-            (plan, amount, status, asaas_charge_id, asaas_customer_id, created_at)
-            VALUES ($1, $2, 'pending', $3, $4, NOW())
-            RETURNING id
-        `;
+        // Get plan_id from database
+        const planResult = await pool.query(
+            'SELECT id FROM plans WHERE slug = $1',
+            [plan]
+        );
 
-        await pool.query(subscriptionQuery, [plan, amount, charge.id, customerId]);
+        if (planResult.rows.length === 0) {
+            throw new Error('Plano não encontrado');
+        }
+
+        const planId = planResult.rows[0].id;
+
+        // Save to tenant_subscriptions with pending status
+        const existingSubscription = await pool.query(
+            'SELECT id FROM tenant_subscriptions WHERE tenant_id = $1',
+            [tenantId]
+        );
+
+        if (existingSubscription.rows.length > 0) {
+            await pool.query(
+                `UPDATE tenant_subscriptions 
+                 SET plan_id = $1, status = 'pending', asaas_charge_id = $2, updated_at = CURRENT_TIMESTAMP
+                 WHERE tenant_id = $3`,
+                [planId, charge.id, tenantId]
+            );
+        } else {
+            await pool.query(
+                `INSERT INTO tenant_subscriptions (tenant_id, plan_id, status, asaas_charge_id)
+                 VALUES ($1, $2, 'pending', $3)`,
+                [tenantId, planId, charge.id]
+            );
+        }
 
         const response = {
             chargeId: charge.id,
@@ -215,8 +271,8 @@ const handleAsaasWebhook = async (req, res) => {
                 console.log('Pagamento confirmado:', paymentId);
                 if (paymentId) {
                     await pool.query(
-                        `UPDATE subscriptions 
-                         SET status = 'active', updated_at = NOW() 
+                        `UPDATE tenant_subscriptions 
+                         SET status = 'active', started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
                          WHERE asaas_charge_id = $1`,
                         [paymentId]
                     );
@@ -227,8 +283,8 @@ const handleAsaasWebhook = async (req, res) => {
                 console.log('Pagamento vencido:', paymentId);
                 if (paymentId) {
                     await pool.query(
-                        `UPDATE subscriptions 
-                         SET status = 'overdue', updated_at = NOW() 
+                        `UPDATE tenant_subscriptions 
+                         SET status = 'overdue', updated_at = CURRENT_TIMESTAMP
                          WHERE asaas_charge_id = $1`,
                         [paymentId]
                     );
@@ -240,8 +296,8 @@ const handleAsaasWebhook = async (req, res) => {
                 console.log('Pagamento cancelado/reembolsado:', paymentId);
                 if (paymentId) {
                     await pool.query(
-                        `UPDATE subscriptions 
-                         SET status = 'cancelled', updated_at = NOW() 
+                        `UPDATE tenant_subscriptions 
+                         SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
                          WHERE asaas_charge_id = $1`,
                         [paymentId]
                     );

@@ -65,7 +65,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', checkAppointmentLimit, async (req, res) => {
   try {
     const { service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id } = req.body;
-    
+
     const result = await pool.query(
       `INSERT INTO appointments (tenant_id, service_id, client_name, client_phone, appointment_date, appointment_time, notes, device_id) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
@@ -79,7 +79,7 @@ router.post('/', checkAppointmentLimit, async (req, res) => {
       'SELECT name FROM services WHERE id = $1 AND tenant_id = $2',
       [service_id, req.tenantId]
     );
-    
+
     const serviceName = serviceResult.rows[0]?.name || 'Serviço';
     const appointmentDate = new Date(appointment_date).toLocaleDateString('pt-BR');
     const appointmentTime = appointment_time.substring(0, 5);
@@ -114,7 +114,7 @@ router.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+
     if (!['pendente', 'realizado', 'cancelado'].includes(status)) {
       return res.status(400).json({ error: 'Status inválido' });
     }
@@ -142,18 +142,18 @@ router.patch('/:id/status', async (req, res) => {
     console.log('Raw Query:', rawQuery);
 
     const result = await pool.query(queryText, values);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Agendamento não encontrado' });
     }
 
     const appointment = result.rows[0];
-    
+
     if (status === 'realizado') {
       try {
         const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('pt-BR');
         const appointmentTime = appointment.appointment_time.substring(0, 5);
-        
+
         const message = `Agendamento Confirmado - ${req.tenant.name}\n\n` +
                        `Olá, ${appointment.client_name}!\n\n` +
                        `Seu agendamento foi confirmado com sucesso!\n\n` +
@@ -165,7 +165,7 @@ router.patch('/:id/status', async (req, res) => {
                        `Mensagem automática - ${req.tenant.name}`;
 
         const smsResult = await nitroSMS.sendSMS(req.tenantId, appointment.client_phone, message);
-        
+
         if (smsResult.success) {
           console.log(`✅ Notificação de confirmação enviada para ${appointment.client_phone} (Log ID: ${smsResult.logId})`);
         } else {
@@ -195,7 +195,7 @@ router.patch('/:id/status', async (req, res) => {
         console.error('❌ Erro ao enviar notificação via NitroSMS:', error.message);
       }
     }
-    
+
     res.json(result.rows[0]);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar status' });

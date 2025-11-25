@@ -1,5 +1,9 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Add asaas_charge_id to tenant_subscriptions if not exists
+ALTER TABLE tenant_subscriptions 
+ADD COLUMN IF NOT EXISTS asaas_charge_id VARCHAR(255);
+
 CREATE TABLE services (
   id SERIAL PRIMARY KEY,
   tenant_id VARCHAR(255) NOT NULL,

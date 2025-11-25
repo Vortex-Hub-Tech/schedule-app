@@ -71,6 +71,15 @@ function selectPlan(plan, amount) {
         return;
     }
 
+    // Request tenant ID
+    const tenantId = prompt('Digite o ID do seu tenant (empresa):');
+    if (!tenantId || tenantId.trim() === '') {
+        showNotification('ID do tenant é obrigatório para continuar.', 'error');
+        return;
+    }
+
+    // Store tenant ID for payment
+    window.selectedTenantId = tenantId.trim();
     openPaymentModal();
 }
 
@@ -177,6 +186,7 @@ async function handlePaymentSubmit(e) {
             body: JSON.stringify({
                 amount: selectedAmount,
                 plan: selectedPlan,
+                tenantId: window.selectedTenantId,
                 customer: {
                     name,
                     email,
