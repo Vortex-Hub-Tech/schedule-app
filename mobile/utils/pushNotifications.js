@@ -13,7 +13,8 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotificationsAsync(deviceId, userType, tenantId = null) {
-  let token;
+  let expoToken = null;
+  let fcmToken = null;
 
   if (!Device.isDevice) {
     console.log('Push notifications só funcionam em dispositivos físicos');
@@ -33,25 +34,6 @@ export async function registerForPushNotificationsAsync(deviceId, userType, tena
     return null;
   }
 
-  try {
-    token = (await Notifications.getExpoPushTokenAsync({
-      projectId: '53e8888c-f828-41a7-8fd3-189f68b584c3'
-    })).data;
-    
-    console.log('Expo Push Token:', token);
-
-    await apiClient.pushTokens.register({
-      device_id: deviceId,
-      expo_push_token: token,
-      user_type: userType,
-      tenant_id: tenantId
-    });
-
-    console.log('✅ Push token registrado no backend');
-  } catch (error) {
-    console.error('❌ Erro ao registrar push token:', error);
-  }
-
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'AgendaFácil',
@@ -64,7 +46,45 @@ export async function registerForPushNotificationsAsync(deviceId, userType, tena
     });
   }
 
-  return token;
+  try {
+    const nativeToken = await Notifications.getDevicePushTokenAsync();
+    fcmToken = nativeToken.data;
+    console.log('🔥 FCM Token (nativo):', fcmToken);
+  } catch (error) {
+    console.log('⚠️ Não foi possível obter FCM token nativo:', error.message);
+  }
+
+  try {
+    expoToken = (await Notifications.getExpoPushTokenAsync({
+      projectId: '53e8888c-f828-41a7-8fd3-189f68b584c3'
+    })).data;
+    console.log('📱 Expo Push Token:', expoToken);
+  } catch (error) {
+    console.log('⚠️ Não foi possível obter Expo token:', error.message);
+  }
+
+  if (!fcmToken && !expoToken) {
+    console.error('❌ Nenhum token de push obtido');
+    return null;
+  }
+
+  try {
+    await apiClient.pushTokens.register({
+      device_id: deviceId,
+      expo_push_token: expoToken,
+      fcm_token: fcmToken,
+      user_type: userType,
+      tenant_id: tenantId
+    });
+
+    console.log('✅ Push tokens registrados no backend');
+    console.log(`   - FCM: ${fcmToken ? 'Sim' : 'Não'}`);
+    console.log(`   - Expo: ${expoToken ? 'Sim' : 'Não'}`);
+  } catch (error) {
+    console.error('❌ Erro ao registrar push tokens:', error);
+  }
+
+  return { expoToken, fcmToken };
 }
 
 export function setupNotificationListeners(notificationListener, responseListener) {

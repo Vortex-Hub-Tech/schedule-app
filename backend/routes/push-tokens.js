@@ -4,11 +4,17 @@ const { pool } = require('../db');
 
 router.post('/register', async (req, res) => {
   try {
-    const { device_id, expo_push_token, user_type, tenant_id } = req.body;
+    const { device_id, expo_push_token, fcm_token, user_type, tenant_id } = req.body;
 
-    if (!device_id || !expo_push_token || !user_type) {
+    if (!device_id || !user_type) {
       return res.status(400).json({ 
-        error: 'device_id, expo_push_token e user_type são obrigatórios' 
+        error: 'device_id e user_type são obrigatórios' 
+      });
+    }
+
+    if (!expo_push_token && !fcm_token) {
+      return res.status(400).json({ 
+        error: 'expo_push_token ou fcm_token é obrigatório' 
       });
     }
 
@@ -19,17 +25,20 @@ router.post('/register', async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO push_tokens (device_id, expo_push_token, tenant_id, user_type, updated_at)
-       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+      `INSERT INTO push_tokens (device_id, expo_push_token, fcm_token, tenant_id, user_type, updated_at)
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
        ON CONFLICT (device_id) 
        DO UPDATE SET 
-         expo_push_token = EXCLUDED.expo_push_token,
+         expo_push_token = COALESCE(EXCLUDED.expo_push_token, push_tokens.expo_push_token),
+         fcm_token = COALESCE(EXCLUDED.fcm_token, push_tokens.fcm_token),
          tenant_id = EXCLUDED.tenant_id,
          user_type = EXCLUDED.user_type,
          updated_at = CURRENT_TIMESTAMP
        RETURNING *`,
-      [device_id, expo_push_token, tenant_id, user_type]
+      [device_id, expo_push_token, fcm_token, tenant_id, user_type]
     );
+
+    console.log(`✅ Push token registrado - Device: ${device_id}, FCM: ${fcm_token ? 'Sim' : 'Não'}, Expo: ${expo_push_token ? 'Sim' : 'Não'}`);
 
     res.status(200).json({
       success: true,

@@ -20,12 +20,11 @@ name = "Backend API"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "webview"
+outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd backend && node server.js"
-waitForPort = 5000
 
 [[ports]]
 localPort = 4999

@@ -4,7 +4,7 @@ const { pool } = require('../db');
 const { validateTenant } = require('../middleware/tenant');
 const { checkAppointmentLimit } = require('../middleware/planLimits');
 const nitroSMS = require('../services/nitrosms');
-const { sendNotificationToOwner, sendNotificationToClient } = require('../services/pushNotifications');
+const { sendNotificationToOwner, sendNotificationToClient } = require('../services/firebasePushNotifications');
 
 router.use(validateTenant);
 
