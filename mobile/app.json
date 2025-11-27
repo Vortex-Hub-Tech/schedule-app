@@ -18,6 +18,7 @@
     },
     "android": {
       "package": "com.agendamento.servicos",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#c470d1"
